@@ -1,0 +1,61 @@
+uv run --frozen pytest
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.2.0, pluggy-1.7.0
+rootdir: /home/claude/abaad
+configfile: pyproject.toml
+testpaths: backend/tests, science/tests, scripts/tests
+plugins: anyio-4.16.0
+collected 41 items
+
+backend/tests/test_constraints.py ...........                            [ 26%]
+backend/tests/test_db_and_health.py .........                            [ 48%]
+backend/tests/test_migrations.py ......                                  [ 63%]
+science/tests/test_isolation.py ...                                      [ 70%]
+scripts/tests/test_scripts.py ............                               [100%]
+
+============================== 41 passed in 2.06s ==============================
+pnpm --dir frontend run typecheck
+
+> abaad-frontend@0.1.0 typecheck /home/claude/abaad/frontend
+> tsc --noEmit
+
+pnpm --dir frontend run test:unit
+
+> abaad-frontend@0.1.0 test:unit /home/claude/abaad/frontend
+> vitest run
+
+
+ RUN  v5.1.0 /home/claude/abaad/frontend
+
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  13:44:05
+   Duration  193ms (import 37%, transform 30%, tests 28%, worker 6%)
+
+pnpm --dir frontend run test:e2e
+
+> abaad-frontend@0.1.0 test:e2e /home/claude/abaad/frontend
+> playwright test
+
+[WebServer] INFO:     Started server process [4991]
+[WebServer] INFO:     Waiting for application startup.
+[WebServer] INFO:     Application startup complete.
+[WebServer] INFO:     Uvicorn running on http://127.0.0.1:8100 (Press CTRL+C to quit)
+
+Running 11 tests using 1 worker
+
+  ✓   1 e2e/home.spec.ts:3:1 › home page shows the temporary wordmark, slogan and a live API/database status (473ms)
+  ✓   2 e2e/home.spec.ts:21:1 › health endpoint answers through the frontend origin with the agreed shape (27ms)
+  ✓   3 e2e/home.spec.ts:30:1 › unknown API route returns the {code, message, details} error shape (9ms)
+  ✓   4 e2e/map-spike.spec.ts:18:5 › map feasibility spike (synthetic fixtures) › T2 passes (4.2s)
+  ✓   5 e2e/map-spike.spec.ts:18:5 › map feasibility spike (synthetic fixtures) › T3 passes (4.3s)
+  ✓   6 e2e/map-spike.spec.ts:18:5 › map feasibility spike (synthetic fixtures) › T4 passes (4.2s)
+  ✓   7 e2e/map-spike.spec.ts:18:5 › map feasibility spike (synthetic fixtures) › T5 passes (4.3s)
+  ✓   8 e2e/map-spike.spec.ts:18:5 › map feasibility spike (synthetic fixtures) › T6 passes (4.3s)
+  ✓   9 e2e/map-spike.spec.ts:26:3 › map feasibility spike (synthetic fixtures) › T4 refusal is shown to the user (4.2s)
+  -  10 e2e/map-spike.spec.ts:30:3 › map feasibility spike (synthetic fixtures) › T1 Earth map with OpenFreeMap passes
+  ✓  11 e2e/map-spike.spec.ts:37:3 › map feasibility spike (synthetic fixtures) › spike page screenshot (evidence) (4.6s)
+
+  1 skipped
+  10 passed (42.5s)
