@@ -53,29 +53,27 @@ def load_sources(conn: sqlite3.Connection) -> dict[str, int]:
         _require(src, ["code", "title", "year", "source_type", "source_access", "accessed_on"], f"source {src.get('code')}")
         if not src.get("doi") and not src.get("url"):
             raise CurationError(f"source {src['code']}: needs a doi or a url")
-        key = src.get("doi") or src.get("url")
         row = conn.execute("SELECT id FROM publication WHERE doi = ? OR url = ?", (src.get("doi"), src.get("url"))).fetchone()
         values = (
             src.get("doi"), src["title"], src["year"], src["source_access"], 1 if src.get("peer_reviewed") else 0,
             src["source_type"], src.get("authors"), src.get("institution"), src.get("url"), src.get("licence"),
-            src.get("citation"), src["accessed_on"],
+            src.get("citation"), src["accessed_on"], src.get("access_note"),
         )
         if row:
             pub_id = row[0]
             conn.execute(
                 "UPDATE publication SET doi=?, title=?, year=?, source_access=?, peer_reviewed=?, source_type=?,"
-                " authors=?, institution=?, url=?, licence=?, citation=?, accessed_on=? WHERE id=?",
+                " authors=?, institution=?, url=?, licence=?, citation=?, accessed_on=?, access_note=? WHERE id=?",
                 (*values, pub_id),
             )
         else:
             cur = conn.execute(
                 "INSERT INTO publication (doi, title, year, source_access, peer_reviewed, source_type, authors,"
-                " institution, url, licence, citation, accessed_on) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                " institution, url, licence, citation, accessed_on, access_note) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 values,
             )
             pub_id = cur.lastrowid
         codes[src["code"]] = pub_id
-        del key
     return codes
 
 
@@ -281,10 +279,13 @@ def load_claims(
             " (reference_region_id = ? OR (reference_region_id IS NULL AND ? IS NULL))",
             (analog_id, task_id, reference_id, reference_id),
         ).fetchone()
+        # Written as 'draft' first; the curated state is applied only after the
+        # sources exist, because trg_claim_publish_requires_support checks them.
+        target_state = c.get("publication_state", "draft")
         values = (
             analog_id, task_id, reference_id, reference_body_id, c["claim_evidence_class"],
             c["reference_pairing_basis"], c["supported_claim"], c["similarities"], c["differences"],
-            c["not_supported"], c["spatial_scale"], c["limitations"], c.get("publication_state", "draft"),
+            c["not_supported"], c["spatial_scale"], c["limitations"], "draft",
         )
         if row:
             claim_id = row[0]
@@ -309,6 +310,8 @@ def load_claims(
                 "INSERT INTO site_task_claim_source (claim_id, publication_id, role, locator, note) VALUES (?,?,?,?,?)",
                 (claim_id, source_codes[s["source_code"]], s["role"], s.get("locator"), s.get("note")),
             )
+        if target_state != "draft":
+            conn.execute("UPDATE site_task_claim SET publication_state = ? WHERE id = ?", (target_state, claim_id))
 
     # Hardening F-10: site_task_claim is entirely loader-managed (the API is
     # read-only), so any row whose (analog, task, reference) key is no longer
@@ -377,6 +380,54 @@ def load_datasets(conn: sqlite3.Connection) -> dict[str, int]:
     return codes
 
 
+RUBRIC = {"strong": 1.0, "close": 0.75, "partial": 0.5, "weak": 0.25, "mismatch": 0.0}
+EVIDENCE_BASES = {"published_literature", "remote_observation", "dataset_derived", "field_measured", "hypothesized"}
+
+
+def load_comparison(conn: sqlite3.Connection, region_codes: dict[str, int], source_codes: dict[str, int]) -> int:
+    """Task weights and dimension assessments. Both tables are loader-managed:
+    rows not in curation/comparison.json are removed on every load."""
+    data = _load_json("comparison.json")
+    dims = {code: did for code, did in conn.execute("SELECT code, id FROM comparison_dimension")}
+    tasks = {code: tid for code, tid in conn.execute("SELECT code, id FROM research_task")}
+
+    conn.execute("DELETE FROM task_dimension_weight")
+    for ws in data["weights"]:
+        _require(ws, ["task_code", "rationale", "weights"], f"weights for {ws.get('task_code')}")
+        if ws["task_code"] not in tasks:
+            raise CurationError(f"weights: unknown task {ws['task_code']!r}")
+        for dim, w in ws["weights"].items():
+            if dim not in dims:
+                raise CurationError(f"weights for {ws['task_code']}: unknown dimension {dim!r}")
+            conn.execute(
+                "INSERT INTO task_dimension_weight (task_id, dimension_id, weight, rationale) VALUES (?,?,?,?)",
+                (tasks[ws["task_code"]], dims[dim], float(w), ws["rationale"]),
+            )
+
+    conn.execute("DELETE FROM dimension_assessment")
+    for a in data["assessments"]:
+        where = f"assessment {a.get('analog_code')} x {a.get('reference_code')} / {a.get('dimension')}"
+        _require(a, ["analog_code", "reference_code", "dimension", "rubric_level", "evidence_basis", "rationale",
+                     "analog_source", "analog_locator", "reference_source", "reference_locator"], where)
+        for key, table in (("analog_code", region_codes), ("reference_code", region_codes),
+                           ("analog_source", source_codes), ("reference_source", source_codes), ("dimension", dims)):
+            if a[key] not in table:
+                raise CurationError(f"{where}: unknown {key} {a[key]!r}")
+        if a["rubric_level"] not in RUBRIC:
+            raise CurationError(f"{where}: rubric_level must be one of {sorted(RUBRIC)}")
+        if a["evidence_basis"] not in EVIDENCE_BASES:
+            raise CurationError(f"{where}: evidence_basis must be one of {sorted(EVIDENCE_BASES)}")
+        conn.execute(
+            "INSERT INTO dimension_assessment (analog_region_id, reference_region_id, dimension_id, rubric_level, similarity,"
+            " evidence_basis, rationale, analog_publication_id, analog_locator, reference_publication_id, reference_locator)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            (region_codes[a["analog_code"]], region_codes[a["reference_code"]], dims[a["dimension"]], a["rubric_level"],
+             RUBRIC[a["rubric_level"]], a["evidence_basis"], a["rationale"], source_codes[a["analog_source"]],
+             a["analog_locator"], source_codes[a["reference_source"]], a["reference_locator"]),
+        )
+    return len(data["assessments"])
+
+
 def load_all(db_path: Path) -> dict[str, int]:
     conn = sqlite3.connect(db_path, isolation_level=None)
     conn.execute("PRAGMA foreign_keys = ON")
@@ -387,6 +438,7 @@ def load_all(db_path: Path) -> dict[str, int]:
         load_geometries(conn, region_codes, source_codes)
         load_claims(conn, region_codes, source_codes)
         dataset_codes = load_datasets(conn)
+        assessments = load_comparison(conn, region_codes, source_codes)
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")
@@ -395,6 +447,7 @@ def load_all(db_path: Path) -> dict[str, int]:
         conn.close()
     return {
         "sources": len(source_codes), "regions": len(region_codes), "datasets": len(dataset_codes),
+        "assessments": assessments,
     }
 
 

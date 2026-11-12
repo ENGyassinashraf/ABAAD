@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "note": "Session corrections applied: (1) the former 'C4' Atacama-region-wide drilling claim is removed; Stoker et al. 2023 (S08) supports only the ARADS feature (C6), never the Atacama region or Yungay. (2) claim_evidence_class now follows the supporting source's access level only: A requires a full_text_checked AND peer-reviewed supporting source; B allows abstract_only/partial_full_text, or a program_page/data_release supporting source; C is indirect/contextual and must stay 'draft'. Class is never assigned A from an abstract alone. (3) Hardening pass F-06: 'full_text_checked' means the complete source was read, not merely most of it. S06 and S08 were each read to only ~75-80% and are now 'partial_full_text', so C6 (previously the only class-A claim) is now class B. It is intentional and acceptable that this curated dataset currently contains ZERO class-A claims -- none has had its single supporting source read to completion. Every claim also carries an explicit reference_body (mars for all eight, since every Phase 2 research task is Mars-focused), enforced in the database regardless of whether reference_region_code is set. All claims below remain 'draft' pending the open verification gates (section 17 of the spec) and the owner's full-text reading (gate V-10).",
+  "note": "Session corrections applied: (1) the former 'C4' Atacama-region-wide drilling claim is removed; Stoker et al. 2023 (S08) supports only the ARADS feature (C6), never the Atacama region or Yungay. (2) claim_evidence_class now follows the supporting source's access level only: A requires a full_text_checked AND peer-reviewed supporting source; B allows abstract_only/partial_full_text, or a program_page/data_release supporting source; C is indirect/contextual and must stay 'draft'. Class is never assigned A from an abstract alone. (3) Hardening pass F-06: 'full_text_checked' means the complete source was read, not merely most of it. S06 and S08 were each read to only ~75-80% and are now 'partial_full_text', so C6 (previously the only class-A claim) is now class B. It is intentional and acceptable that this curated dataset currently contains ZERO class-A claims -- none has had its single supporting source read to completion. Every claim also carries an explicit reference_body (mars for all eight, since every Phase 2 research task is Mars-focused), enforced in the database regardless of whether reference_region_code is set. All claims below remain 'draft' pending the open verification gates (section 17 of the spec) and the owner's full-text reading (gate V-10). Project Scope additions: C10 (Gilf Kebir x Jezero, GPR), C11 (Western Desert x Bagnold Dunes, aeolian), C12 (Dakhla x Jezero, fluvial) -- all project_decision_provisional, class B, draft. C3 moved from C to B because S02's abstract is now verified (Crossref).",
   "not_supported_statement": "This record does not support treating Earth weather, atmospheric pressure, radiation, gravity or atmospheric composition as equivalent to Mars or Moon conditions, and it is not a similarity score.",
   "claims": [
     {
@@ -62,21 +62,21 @@
       "analog_region_code": "EG-WD-GILF-KEBIR",
       "task_code": "shallow_subsurface_gpr",
       "reference_region_code": null,
-      "claim_evidence_class": "C",
+      "claim_evidence_class": "B",
       "reference_pairing_basis": "body_level_only",
       "publication_state": "draft",
       "supported_claim": "270 MHz ground-penetrating radar surveys over small buried crater-like structures of disputed origin in the south-western Egyptian desert are used as a process analog for shallow subsurface sounding on Mars. The structures' origin is disputed; this record never calls them confirmed impact craters.",
-      "differences": "Not stated at the access level reached for S02/S03; to be completed from full text.",
+      "differences": "Not stated in the abstract of S02; the abstract reports penetration varying 'from 2 to 15 m', i.e. depth depends on local subsurface conditions. To be completed from full text.",
       "similarities": "Ground-penetrating radar detection of buried structure and layered infill in an arid, radar-transparent sedimentary setting.",
       "not_supported": "This record does not support treating Earth weather, atmospheric pressure, radiation, gravity or atmospheric composition as equivalent to Mars or Moon conditions, and it is not a similarity score.",
       "spatial_scale": "A field of crater-like structures east of the Gilf Kebir plateau (>40,000 km^2 per S03), compared only at Mars body level (no specific reference region).",
-      "limitations": "S02 was reached only through repository records (full text blocked); S03 only through a third-party automated summary, which is explicitly distinguished here from a manually read primary source. Neither reaches abstract-equivalent access, so class is capped at C (indirect/contextual) and this claim cannot be published while class C. Orti et al. 2008 (S04) disputes the impact-origin hypothesis specifically, not the GPR measurements themselves.",
+      "limitations": "S02 has now been read at abstract level (via Crossref; the publisher page blocked automated access), so the claim is class B -- never A from an abstract. S03 was read only through an automated summary and is context, not support. Orti et al. 2008 (S04) disputes the impact-origin hypothesis, not the GPR measurements. No published coordinates for the surveyed structures were found.",
       "sources": [
         {
           "source_code": "S02",
           "role": "supports",
-          "locator": "repository record (full text blocked)",
-          "note": null
+          "locator": "abstract (via Crossref)",
+          "note": "270 MHz GPR; penetration 2-15 m; compared to Martian heavily eroded mid-latitude cratered terrains."
         },
         {
           "source_code": "S03",
@@ -212,6 +212,102 @@
         }
       ],
       "reference_body": "mars"
+    },
+    {
+      "code": "C10",
+      "analog_region_code": "EG-WD-GILF-KEBIR",
+      "task_code": "shallow_subsurface_gpr",
+      "reference_region_code": "MARS-JEZERO-CRATER",
+      "reference_body": "mars",
+      "claim_evidence_class": "B",
+      "reference_pairing_basis": "project_decision_provisional",
+      "publication_state": "draft",
+      "supported_claim": "Ground-penetrating radar has imaged shallow layered subsurface structure both at the Gilf Kebir crater-like structures (270 MHz GPR, 2-15 m; S02) and on the floor of Jezero Crater (Perseverance's RIMFAX to 15 m, layers inclined up to 15 degrees; S25), making Gilf Kebir a candidate for evaluating GPR workflows in a dry, cratered setting.",
+      "similarities": "Surface GPR imaging of shallow layered structure to roughly 15 m depth in dry terrain.",
+      "differences": "Different instruments (270 MHz field GPR vs. RIMFAX), different materials and settings (small buried crater-like structures with disputed origin vs. the floor of a ~47.5 km impact crater), and Earth vs. Mars environment.",
+      "not_supported": "This record does not support treating Earth weather, atmospheric pressure, radiation, gravity or atmospheric composition as equivalent to Mars or Moon conditions, and it is not a similarity score.",
+      "spatial_scale": "Individual surveyed structures (Earth) vs. a rover traverse on the Jezero crater floor (Mars).",
+      "limitations": "The pairing with Jezero is a project decision (Project Scope §12 lists Gale / cratered Mars terrain for Gilf Kebir); neither source pairs the two sites. Earth GPR is not the same instrument as RIMFAX. The Gilf Kebir structures' origin is disputed (S04).",
+      "sources": [
+        {
+          "source_code": "S02",
+          "role": "supports",
+          "locator": "abstract (via Crossref)",
+          "note": "Earth side."
+        },
+        {
+          "source_code": "S25",
+          "role": "context",
+          "locator": "RIMFAX paragraph",
+          "note": "Mars side."
+        },
+        {
+          "source_code": "S04",
+          "role": "disputes",
+          "locator": "abstract",
+          "note": "disputes the impact origin only."
+        }
+      ]
+    },
+    {
+      "code": "C11",
+      "analog_region_code": "EG-WD",
+      "task_code": "aeolian_geomorphology",
+      "reference_region_code": "MARS-BAGNOLD-DUNES",
+      "reference_body": "mars",
+      "claim_evidence_class": "B",
+      "reference_pairing_basis": "project_decision_provisional",
+      "publication_state": "draft",
+      "supported_claim": "Western Desert dune fields with barchan chains (S01) are a starting reference for comparing dune geometry and orientation with the barchan and linear Bagnold Dunes studied by Curiosity inside Gale Crater (S19).",
+      "similarities": "Wind-formed barchan dunes documented on both sides; linear dunes also studied at Bagnold.",
+      "differences": "Wind transport on Mars occurs in a much thinner atmosphere and under different gravity (Project Scope §12); dune dimensions are not quantified in the sources reached.",
+      "not_supported": "This record does not support treating Earth weather, atmospheric pressure, radiation, gravity or atmospheric composition as equivalent to Mars or Moon conditions, and it is not a similarity score.",
+      "spatial_scale": "The Western Desert as a region (dune-field subregion polygons still to be curated) vs. one dune field inside Gale Crater.",
+      "limitations": "Pairing is a project decision; El-Baz et al. (S01) compare Egyptian dunes with the north polar sand sea, not Bagnold. S01 is read at abstract level only. The whole Western Desert must not be treated as one test site.",
+      "sources": [
+        {
+          "source_code": "S01",
+          "role": "supports",
+          "locator": "abstract",
+          "note": "Earth side."
+        },
+        {
+          "source_code": "S19",
+          "role": "context",
+          "locator": "page text",
+          "note": "Mars side."
+        }
+      ]
+    },
+    {
+      "code": "C12",
+      "analog_region_code": "EG-WD-DAKHLA",
+      "task_code": "fluvial_paleohydrology",
+      "reference_region_code": "MARS-JEZERO-CRATER",
+      "reference_body": "mars",
+      "claim_evidence_class": "B",
+      "reference_pairing_basis": "project_decision_provisional",
+      "publication_state": "draft",
+      "supported_claim": "Inverted stream channels in the Western Desert including the Dakhla site (S05) and the ancient lake-delta system of Jezero Crater (S20) both preserve evidence of ancient flowing water, giving a broad paleohydrology context.",
+      "similarities": "Both preserve deposits of ancient flowing-water systems.",
+      "differences": "A delta and an inverted channel are different landforms (Project Scope §12); scale differs (channel ridges vs. a 45 km crater with a delta).",
+      "not_supported": "This record does not support treating Earth weather, atmospheric pressure, radiation, gravity or atmospheric composition as equivalent to Mars or Moon conditions, and it is not a similarity score.",
+      "spatial_scale": "Dakhla inverted-channel site (no verified location; oasis context point only) vs. Jezero Crater's delta.",
+      "limitations": "Pairing is a project decision. S05 read at abstract level only. The Dakhla burial/lithification/exhumation interpretation is tentative and site-level verification is needed (gate V-1).",
+      "sources": [
+        {
+          "source_code": "S05",
+          "role": "supports",
+          "locator": "abstract / highlights",
+          "note": "Earth side."
+        },
+        {
+          "source_code": "S20",
+          "role": "context",
+          "locator": "landing-site page",
+          "note": "Mars side."
+        }
+      ]
     }
   ],
   "excluded_sources": [

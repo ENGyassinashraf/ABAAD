@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "note": "Comparison inputs (Project & Scientific Guide §06). Weights are a project methodology decision with a written rationale per task (owner may adjust). Each assessment picks one named rubric level (strong=1, close=0.75, partial=0.5, weak=0.25, mismatch=0) and cites a source on BOTH the Earth side and the planetary side. Any dimension with no assessment is UNKNOWN, never zero; a candidate below 50% weighted coverage is reported as insufficient evidence and not ranked.",
+  "min_coverage": 50.0,
+  "weights": [
+    {
+      "task_code": "aeolian_geomorphology",
+      "rationale": "Guide §06: surface processes (dune migration, erosion/deposition) drive aeolian research; dune geometry next; wind/atmosphere context interprets the process; materials matter least.",
+      "weights": {
+        "surface_processes": 4,
+        "terrain_shape": 3,
+        "environment": 2,
+        "geology_materials": 1
+      }
+    },
+    {
+      "task_code": "fluvial_paleohydrology",
+      "rationale": "Guide §06: channel morphology, sedimentology and geological context matter more than mobility; environment only frames interpretation.",
+      "weights": {
+        "surface_processes": 4,
+        "geology_materials": 3,
+        "terrain_shape": 2,
+        "environment": 1
+      }
+    },
+    {
+      "task_code": "shallow_subsurface_gpr",
+      "rationale": "Guide §15: documented subsurface structure first, then materials (attenuation), dry conditions, then crater morphology.",
+      "weights": {
+        "subsurface": 4,
+        "geology_materials": 3,
+        "environment": 2,
+        "terrain_shape": 1
+      }
+    },
+    {
+      "task_code": "rover_mobility",
+      "rationale": "Guide §04: slope, roughness and obstacles first, then loose material/bearing strength, then operating environment; surface processes least.",
+      "weights": {
+        "terrain_shape": 4,
+        "geology_materials": 3,
+        "environment": 2,
+        "surface_processes": 1
+      }
+    },
+    {
+      "task_code": "life_detection_drilling",
+      "rationale": "Guide §05 (soil, drilling, sampling): physical material properties first, then layering and environment (aridity, biomass context).",
+      "weights": {
+        "geology_materials": 4,
+        "subsurface": 3,
+        "environment": 3
+      }
+    },
+    {
+      "task_code": "cold_arid_environment",
+      "rationale": "Environment-defined task: temperature/aridity context first; materials and processes interpret it.",
+      "weights": {
+        "environment": 4,
+        "geology_materials": 2,
+        "surface_processes": 2
+      }
+    },
+    {
+      "task_code": "ice_cemented_ground_drilling",
+      "rationale": "Drilling into ice-cemented ground depends on subsurface layering, material properties and cold environment.",
+      "weights": {
+        "subsurface": 4,
+        "geology_materials": 3,
+        "environment": 3
+      }
+    },
+    {
+      "task_code": "basaltic_volcanology",
+      "rationale": "Volcanic analog work compares lava materials first, then flow morphology and emplacement processes.",
+      "weights": {
+        "geology_materials": 4,
+        "terrain_shape": 3,
+        "surface_processes": 3
+      }
+    }
+  ],
+  "assessments": [
+    {
+      "analog_code": "EG-WD",
+      "reference_code": "MARS-BAGNOLD-DUNES",
+      "dimension": "surface_processes",
+      "rubric_level": "close",
+      "evidence_basis": "published_literature",
+      "rationale": "Wind-formed barchan dunes are documented on both sides (Western Desert barchan chains; Bagnold barchan and linear dunes). Same bedform type, but Mars wind transport acts in a much thinner atmosphere.",
+      "analog_source": "S01",
+      "analog_locator": "abstract",
+      "reference_source": "S19",
+      "reference_locator": "page text"
+    },
+    {
+      "analog_code": "EG-WD",
+      "reference_code": "MARS-BAGNOLD-DUNES",
+      "dimension": "terrain_shape",
+      "rubric_level": "partial",
+      "evidence_basis": "published_literature",
+      "rationale": "Crescent (barchan) dune form appears on both sides, but dune height, spacing and slopes are not quantified in the sources reached.",
+      "analog_source": "S01",
+      "analog_locator": "abstract",
+      "reference_source": "S19",
+      "reference_locator": "page text"
+    },
+    {
+      "analog_code": "EG-WD",
+      "reference_code": "MARS-NORTH-POLAR-SAND-SEA",
+      "dimension": "surface_processes",
+      "rubric_level": "close",
+      "evidence_basis": "published_literature",
+      "rationale": "El-Baz et al. directly compare Egyptian barchan dunes with dunes in Viking images of the north polar sand sea: same wind-formed bedform type.",
+      "analog_source": "S01",
+      "analog_locator": "abstract",
+      "reference_source": "S01",
+      "reference_locator": "abstract"
+    },
+    {
+      "analog_code": "EG-WD",
+      "reference_code": "MARS-NORTH-POLAR-SAND-SEA",
+      "dimension": "terrain_shape",
+      "rubric_level": "partial",
+      "evidence_basis": "published_literature",
+      "rationale": "Barchan forms on both sides; dune dimensions and relief are not quantified in the abstract.",
+      "analog_source": "S01",
+      "analog_locator": "abstract",
+      "reference_source": "S01",
+      "reference_locator": "abstract"
+    },
+    {
+      "analog_code": "EG-WD-DAKHLA",
+      "reference_code": "MARS-JEZERO-CRATER",
+      "dimension": "surface_processes",
+      "rubric_level": "partial",
+      "evidence_basis": "published_literature",
+      "rationale": "Both preserve deposits of ancient flowing water, but an inverted channel and a lake delta are different landforms (Project Scope §12).",
+      "analog_source": "S05",
+      "analog_locator": "abstract / highlights",
+      "reference_source": "S20",
+      "reference_locator": "landing-site page"
+    },
+    {
+      "analog_code": "EG-WD-DAKHLA",
+      "reference_code": "MARS-JEZERO-CRATER",
+      "dimension": "terrain_shape",
+      "rubric_level": "weak",
+      "evidence_basis": "published_literature",
+      "rationale": "Inverted channel ridges vs. a 45 km crater containing a delta: shapes and scales differ.",
+      "analog_source": "S05",
+      "analog_locator": "abstract / highlights",
+      "reference_source": "S20",
+      "reference_locator": "landing-site page (crater 45 km wide)"
+    },
+    {
+      "analog_code": "EG-WD-DAKHLA",
+      "reference_code": "MARS-ARABIA-TERRA",
+      "dimension": "surface_processes",
+      "rubric_level": "partial",
+      "evidence_basis": "published_literature",
+      "rationale": "Both preserve ancient fluvial deposits (Egyptian inverted stream channels; Arabia Terra fluvial depositional systems). Kept at 'partial' because the Arabia Terra source was read only in part.",
+      "analog_source": "S05",
+      "analog_locator": "abstract / highlights",
+      "reference_source": "S06",
+      "reference_locator": "Sections 1-3 (partial read)"
+    },
+    {
+      "analog_code": "EG-WD-GILF-KEBIR",
+      "reference_code": "MARS-JEZERO-CRATER",
+      "dimension": "subsurface",
+      "rubric_level": "partial",
+      "evidence_basis": "published_literature",
+      "rationale": "GPR has imaged shallow layered structure on both sides to roughly 15 m (270 MHz GPR, 2-15 m at Gilf Kebir; RIMFAX to 15 m with layers inclined up to 15 degrees at Jezero). Materials, instruments and the origin of the Earth structures differ.",
+      "analog_source": "S02",
+      "analog_locator": "abstract (via Crossref)",
+      "reference_source": "S25",
+      "reference_locator": "RIMFAX paragraph"
+    },
+    {
+      "analog_code": "EG-WD-GILF-KEBIR",
+      "reference_code": "MARS-JEZERO-CRATER",
+      "dimension": "terrain_shape",
+      "rubric_level": "weak",
+      "evidence_basis": "published_literature",
+      "rationale": "Small buried crater-like structures vs. a 47.5 km impact crater: crater morphology at very different scales.",
+      "analog_source": "S02",
+      "analog_locator": "abstract (via Crossref)",
+      "reference_source": "S15",
+      "reference_locator": "Feature 14300 diameter"
+    },
+    {
+      "analog_code": "EG-WD-GILF-KEBIR",
+      "reference_code": "MARS-GALE-CRATER",
+      "dimension": "terrain_shape",
+      "rubric_level": "weak",
+      "evidence_basis": "published_literature",
+      "rationale": "Small crater-like structures vs. a 155 km impact crater. S02 compares Gilf Kebir to heavily eroded mid-latitude cratered terrains, not to Gale.",
+      "analog_source": "S02",
+      "analog_locator": "abstract (via Crossref)",
+      "reference_source": "S14",
+      "reference_locator": "Feature 2071 diameter"
+    },
+    {
+      "analog_code": "IS-HOLUHRAUN",
+      "reference_code": "MARS-ELYSIUM-PLANITIA",
+      "dimension": "terrain_shape",
+      "rubric_level": "close",
+      "evidence_basis": "published_literature",
+      "rationale": "Voigt et al. compare Holuhraun lava morphologies (transitional/rubbly flows, polygonal terrain) directly with young volcanic terrains in Elysium Planitia.",
+      "analog_source": "S07",
+      "analog_locator": "abstract",
+      "reference_source": "S07",
+      "reference_locator": "abstract"
+    },
+    {
+      "analog_code": "IS-HOLUHRAUN",
+      "reference_code": "MARS-ELYSIUM-PLANITIA",
+      "dimension": "surface_processes",
+      "rubric_level": "close",
+      "evidence_basis": "published_literature",
+      "rationale": "Fissure-fed eruption and lava-water interaction are discussed for both settings in the same study.",
+      "analog_source": "S07",
+      "analog_locator": "abstract",
+      "reference_source": "S07",
+      "reference_locator": "abstract"
+    },
+    {
+      "analog_code": "EG-WD",
+      "reference_code": "MOON-SOUTH-POLE",
+      "dimension": "environment",
+      "rubric_level": "mismatch",
+      "evidence_basis": "published_literature",
+      "rationale": "A sunlit Earth desert under an atmosphere cannot reproduce the lunar south pole's vacuum, low gravity or permanently shadowed regions where 'sunlight may never reach the surface'.",
+      "analog_source": "S01",
+      "analog_locator": "abstract (Western Desert of Egypt)",
+      "reference_source": "S21",
+      "reference_locator": "permanently shadowed regions paragraph"
+    },
+    {
+      "analog_code": "EG-WD",
+      "reference_code": "MOON-SHACKLETON-CRATER",
+      "dimension": "environment",
+      "rubric_level": "mismatch",
+      "evidence_basis": "published_literature",
+      "rationale": "Shackleton's interior is 'perpetually in shadow' at the lunar south pole; an Earth desert cannot reproduce that lighting, vacuum or low gravity.",
+      "analog_source": "S01",
+      "analog_locator": "abstract (Western Desert of Egypt)",
+      "reference_source": "S22",
+      "reference_locator": "page text"
+    },
+    {
+      "analog_code": "EG-WD-GILF-KEBIR",
+      "reference_code": "MOON-SOUTH-POLE",
+      "dimension": "environment",
+      "rubric_level": "mismatch",
+      "evidence_basis": "published_literature",
+      "rationale": "A sunlit Earth desert under an atmosphere cannot reproduce the lunar south pole's vacuum, low gravity or permanently shadowed regions where 'sunlight may never reach the surface'.",
+      "analog_source": "S02",
+      "analog_locator": "abstract (southwestern Egyptian desert)",
+      "reference_source": "S21",
+      "reference_locator": "permanently shadowed regions paragraph"
+    },
+    {
+      "analog_code": "EG-WD-GILF-KEBIR",
+      "reference_code": "MOON-SHACKLETON-CRATER",
+      "dimension": "environment",
+      "rubric_level": "mismatch",
+      "evidence_basis": "published_literature",
+      "rationale": "Shackleton's interior is 'perpetually in shadow' at the lunar south pole; an Earth desert cannot reproduce that lighting, vacuum or low gravity.",
+      "analog_source": "S02",
+      "analog_locator": "abstract (southwestern Egyptian desert)",
+      "reference_source": "S22",
+      "reference_locator": "page text"
+    },
+    {
+      "analog_code": "EG-WD-DAKHLA",
+      "reference_code": "MOON-SOUTH-POLE",
+      "dimension": "environment",
+      "rubric_level": "mismatch",
+      "evidence_basis": "published_literature",
+      "rationale": "A sunlit Earth desert under an atmosphere cannot reproduce the lunar south pole's vacuum, low gravity or permanently shadowed regions where 'sunlight may never reach the surface'.",
+      "analog_source": "S05",
+      "analog_locator": "abstract (Western Desert of Egypt)",
+      "reference_source": "S21",
+      "reference_locator": "permanently shadowed regions paragraph"
+    },
+    {
+      "analog_code": "EG-WD-DAKHLA",
+      "reference_code": "MOON-SHACKLETON-CRATER",
+      "dimension": "environment",
+      "rubric_level": "mismatch",
+      "evidence_basis": "published_literature",
+      "rationale": "Shackleton's interior is 'perpetually in shadow' at the lunar south pole; an Earth desert cannot reproduce that lighting, vacuum or low gravity.",
+      "analog_source": "S05",
+      "analog_locator": "abstract (Western Desert of Egypt)",
+      "reference_source": "S22",
+      "reference_locator": "page text"
+    }
+  ]
+}

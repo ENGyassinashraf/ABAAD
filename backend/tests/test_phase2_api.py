@@ -45,14 +45,14 @@ def test_bodies_lists_three(client):
 def test_tasks_footer_explains_evidence_classes(client):
     r = client.get("/api/v1/tasks")
     body = r.json()
-    assert len(body["items"]) == 7
+    assert len(body["items"]) == 8  # 7 Phase 2 tasks + rover_mobility (0006)
     assert "claim_evidence_class" in body["footer"] and "evidence_grade" in body["footer"]
 
 
 def test_regions_paging_and_filters(client):
     r = client.get("/api/v1/regions", params={"body": "mars", "role": "reference"})
     body = r.json()
-    assert body["total"] == 3
+    assert body["total"] == 6  # 3 Phase 2 + Gale, Bagnold Dunes, Jezero (Project Scope)
     assert all(item["body"] == "mars" for item in body["items"])
 
 
@@ -85,12 +85,12 @@ def test_claims_hide_drafts_and_class_c_by_default(local_client):
 
     r2 = local_client.get("/api/v1/claims", params={"include_unpublished": "true"})
     body = r2.json()
-    assert body["total"] == 8
+    assert body["total"] == 11
     assert all(item["unpublished"] for item in body["items"])
     classes = {item["claim_evidence_class"]["code"] for item in body["items"]}
-    # Hardening F-06: zero class-A claims is intentional -- no seeded claim's
-    # single supporting source has been read to completion.
-    assert classes == {"B", "C"}
+    # Zero class-A claims is intentional (no supporting source read to completion);
+    # C3 moved from C to B once S02's abstract was verified via Crossref.
+    assert classes == {"B"}
     for item in body["items"]:
         assert item["claim_evidence_class"]["label"]  # never a bare letter
         assert item["reference_body"] == "mars"
@@ -124,7 +124,7 @@ def test_atacama_arads_claim_never_attached_to_yungay(local_client):
 def test_sources_paged(client):
     r = client.get("/api/v1/sources", params={"limit": 2})
     body = r.json()
-    assert body["limit"] == 2 and len(body["items"]) == 2 and body["total"] == 11
+    assert body["limit"] == 2 and len(body["items"]) == 2 and body["total"] == 23
 
 
 def test_datasets_list_and_detail(client):

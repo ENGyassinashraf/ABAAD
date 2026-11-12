@@ -30,12 +30,12 @@ def _migrated(db: Path) -> Path:
 def test_real_curation_files_load_cleanly(tmp_path):
     db = _migrated(tmp_path / "live.sqlite")
     counts = lc.load_all(db)
-    assert counts["sources"] == 11
-    assert counts["regions"] == 12
+    assert counts["sources"] == 23
+    assert counts["regions"] == 17
     assert counts["datasets"] == 4
 
     conn = sqlite3.connect(db)
-    assert conn.execute("SELECT count(*) FROM site_task_claim").fetchone()[0] == 8
+    assert conn.execute("SELECT count(*) FROM site_task_claim").fetchone()[0] == 11
     assert conn.execute("SELECT count(*) FROM region_alias").fetchone()[0] == 1
     assert conn.execute("SELECT count(*) FROM coverage_gap").fetchone()[0] == 10
     # Session correction 1: no claim exists on CL-ATACAMA itself (the former "C4"
@@ -72,9 +72,11 @@ def test_loading_twice_is_idempotent(tmp_path):
     lc.load_all(db)
     lc.load_all(db)
     conn = sqlite3.connect(db)
-    assert conn.execute("SELECT count(*) FROM region").fetchone()[0] == 12
-    assert conn.execute("SELECT count(*) FROM site_task_claim").fetchone()[0] == 8
-    assert conn.execute("SELECT count(*) FROM site_task_claim_source").fetchone()[0] == 11
+    assert conn.execute("SELECT count(*) FROM region").fetchone()[0] == 17
+    assert conn.execute("SELECT count(*) FROM site_task_claim").fetchone()[0] == 11
+    assert conn.execute("SELECT count(*) FROM site_task_claim_source").fetchone()[0] == 18
+    assert conn.execute("SELECT count(*) FROM dimension_assessment").fetchone()[0] == 18
+    assert conn.execute("SELECT count(*) FROM task_dimension_weight").fetchone()[0] == 28
     conn.close()
 
 

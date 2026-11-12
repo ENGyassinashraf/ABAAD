@@ -21,6 +21,8 @@ PHASE1_TABLES = {
 PHASE2_TABLES = {
     "region_alias", "research_task", "site_task_claim", "site_task_claim_source",
     "dataset", "data_asset", "processing_record", "processing_input", "coverage_gap",
+    # 0006 comparison engine
+    "comparison_dimension", "task_dimension_weight", "dimension_assessment",
 }
 TABLES = PHASE1_TABLES | PHASE2_TABLES
 
@@ -89,6 +91,12 @@ NEW_TABLE_CHECKS = {
     "processing_record": {"ck_processing_record_params_json", "ck_processing_record_resampling_method_enum"},
     "processing_input": set(),
     "coverage_gap": {"ck_coverage_gap_slot_enum", "ck_coverage_gap_state_enum"},
+    "comparison_dimension": set(),
+    "task_dimension_weight": {"ck_task_dimension_weight_range", "ck_task_dimension_weight_rationale"},
+    "dimension_assessment": {
+        "ck_dimension_assessment_rubric_level_enum", "ck_dimension_assessment_similarity_matches_rubric",
+        "ck_dimension_assessment_evidence_basis_enum", "ck_dimension_assessment_text",
+    },
 }
 # Hardening pass (0005): dataset.horizontal_crs is no longer forced into an
 # IAU_2015 family (F-02); a new explicit horizontal_crs_status replaces that.
@@ -132,6 +140,8 @@ HARDENING_TRIGGERS = {
     "trg_data_asset_raw_clipped_matches_dataset_ins", "trg_data_asset_raw_clipped_matches_dataset_upd",
     "trg_processing_record_output_matches_asset_ins", "trg_processing_record_output_matches_asset_upd",
     "trg_processing_input_same_body_upd",
+    # 0006 comparison engine
+    "trg_assessment_roles_ins", "trg_assessment_roles_upd", "trg_region_immutable_when_assessed_upd",
 }
 EXPECTED_TRIGGERS = PHASE1_TRIGGERS  # at "0001" baseline
 EXPECTED_INDEXES = {
@@ -160,7 +170,7 @@ def schema(db: Path) -> dict:
 
 
 def assert_full_schema(db: Path, at_head: bool) -> None:
-    """``at_head`` means revision 0004 (full Phase 1 + Phase 2 schema).
+    """``at_head`` means revision 0006 (full Phase 1 + Phase 2 schema).
     Otherwise this asserts the revision-0001 baseline (used by the
     downgrade tests, which downgrade all the way past 0002 and 0003)."""
     s = schema(db)
@@ -204,7 +214,7 @@ def assert_full_schema(db: Path, at_head: bool) -> None:
     ) if at_head else PHASE1_TRIGGERS
     assert s["triggers"] == expected_triggers, f"trigger mismatch: {s['triggers'] ^ expected_triggers}"
     assert EXPECTED_INDEXES <= s["indexes"], f"missing indexes: {EXPECTED_INDEXES - s['indexes']}"
-    assert s["version"] == [("0005",)] if at_head else [("0001",)]
+    assert s["version"] == [("0006",)] if at_head else [("0001",)]
 
 
 def test_upgrade_from_clean_state(migrated_db: Path):
@@ -254,12 +264,11 @@ def test_triggers_still_fire_after_batch_rebuild(migrated_db: Path):
 def test_failed_migration_is_atomic(tmp_path: Path):
     """A migration that fails half-way must leave no partial change behind.
 
-    Uses revision "0006" (the first unused revision now that Phase 2 occupies
-    0003/0004/0005) so it never collides with the real migration files copied below."""
+    Uses revision "0007" (the first unused revision now that 0003-0006 exist) so it never collides with the real migration files copied below."""
     scripts = tmp_path / "migrations"
     shutil.copytree(ALEMBIC_INI.parent / "migrations", scripts)
-    (scripts / "versions" / "0006_broken.py").write_text(
-        'revision = "0006"\ndown_revision = "0005"\nbranch_labels = None\ndepends_on = None\n'
+    (scripts / "versions" / "0007_broken.py").write_text(
+        'revision = "0007"\ndown_revision = "0006"\nbranch_labels = None\ndepends_on = None\n'
         "from alembic import op\n"
         "def upgrade():\n"
         '    op.execute("DROP TRIGGER trg_measurement_no_gap_ins")\n'
@@ -272,7 +281,7 @@ def test_failed_migration_is_atomic(tmp_path: Path):
     cfg.set_main_option("script_location", str(scripts))
     import argparse
     cfg.cmd_opts = argparse.Namespace(x=[f"db={db}"])
-    command.upgrade(cfg, "0005")
+    command.upgrade(cfg, "0006")
     with pytest.raises(RuntimeError, match="deliberate failure"):
-        command.upgrade(cfg, "0006")
+        command.upgrade(cfg, "0007")
     assert_full_schema(db, at_head=True)
