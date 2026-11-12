@@ -5,6 +5,7 @@ default, missing values never rendered as zero/empty."""
 
 from __future__ import annotations
 
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -79,14 +80,23 @@ def test_arads_site_has_source_traced_point_geometry(client):
     assert geoms[0]["geometry_role"] == "point_locator"
 
 
-def test_claims_hide_drafts_and_class_c_by_default(local_client):
+def test_claims_hide_drafts_and_class_c_by_default(local_client, migrated_db):
+    # Owner decision: all eleven curated claims are published.
     r = local_client.get("/api/v1/claims")
-    assert r.json()["total"] == 0  # every seeded claim is still 'draft'
+    assert r.json()["total"] == 11
+    assert not any(item["unpublished"] for item in r.json()["items"])
+
+    # A draft is still hidden from the default listing.
+    conn = sqlite3.connect(migrated_db)
+    conn.execute("UPDATE site_task_claim SET publication_state = 'draft' WHERE id = (SELECT min(id) FROM site_task_claim)")
+    conn.commit()
+    conn.close()
+    assert local_client.get("/api/v1/claims").json()["total"] == 10
 
     r2 = local_client.get("/api/v1/claims", params={"include_unpublished": "true"})
     body = r2.json()
     assert body["total"] == 11
-    assert all(item["unpublished"] for item in body["items"])
+    assert sum(item["unpublished"] for item in body["items"]) == 1
     classes = {item["claim_evidence_class"]["code"] for item in body["items"]}
     # Zero class-A claims is intentional (no supporting source read to completion);
     # C3 moved from C to B once S02's abstract was verified via Crossref.

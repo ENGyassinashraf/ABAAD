@@ -111,7 +111,21 @@ def test_all_earth_analogs_are_candidates(client):
     assert not any(c.startswith("MARS-") or c.startswith("MOON-") for c in codes)
 
 
-def test_draft_claim_text_hidden_without_local_gate(client):
+def test_published_claim_text_is_shown(client):
+    dk = _cand(_compare(client, "MARS-JEZERO-CRATER", "fluvial_paleohydrology"), "EG-WD-DAKHLA")
+    claim = dk["claims"][0]
+    assert claim["publication_state"] == "published" and claim["unpublished"] is False
+    assert claim["supported_claim"] and claim["differences"]
+    assert claim["limitations"]
+
+
+def test_draft_claim_text_hidden_without_local_gate(client, loaded_db):
+    conn = raw(loaded_db)
+    conn.execute(
+        "UPDATE site_task_claim SET publication_state = 'draft' WHERE analog_region_id ="
+        " (SELECT id FROM region WHERE code = 'EG-WD-DAKHLA') AND reference_region_id ="
+        " (SELECT id FROM region WHERE code = 'MARS-JEZERO-CRATER')"
+    )
     dk = _cand(_compare(client, "MARS-JEZERO-CRATER", "fluvial_paleohydrology"), "EG-WD-DAKHLA")
     claim = dk["claims"][0]
     assert claim["unpublished"] is True and claim["supported_claim"] is None

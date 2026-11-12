@@ -34,6 +34,7 @@ test("click-through: Mars → Jezero → GPR ranks Gilf Kebir, evidence is trace
   await expect(sub).toContainText("Partial");
   await expect(sub).toContainText("NASA's Perseverance Makes New Discoveries");
   await expect(gk.getByTestId("dim-geology_materials")).toContainText("unknown");
+  await expect(gk.getByTestId("claim").first()).toContainText("Ground-penetrating radar has imaged");
 
   // Map receives the candidates that have a stored point (data independent of tile loading).
   await expect(page.getByTestId("candidate-map")).toHaveAttribute("data-points", "3");

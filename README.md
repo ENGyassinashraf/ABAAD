@@ -137,10 +137,10 @@ side (`curation/comparison.json`). Weights per task carry a written rationale.
 
 API: `GET /api/v1/compare/options`, `GET /api/v1/compare?reference=<code>&task=<code>`.
 
-**Publishing claims** is an owner decision: every claim is `draft`, so the app
-shows its class and limitations but withholds its text. To publish one, set
-`"publication_state": "published"` for it in `curation/claims.json` and run
-`make load-curation` (the database refuses publication unless the claim's
+**Publishing claims** is an owner decision. All eleven curated claims are
+published (owner decision, 2026-11-12); a claim left as `draft` would show only
+its class and limitations. To change one, edit its `"publication_state"` in
+`curation/claims.json` and run `make load-curation` (the database refuses publication unless the claim's
 evidence class is supported). For a local demo of draft text only, start the
 API with `ABAAD_ALLOW_UNPUBLISHED_API=1`.
 

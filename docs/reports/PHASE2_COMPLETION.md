@@ -34,7 +34,7 @@ evidence → traceable report. See `docs/DECISIONS.md` P2-08…P2-14.
   opened on 2026-11-12 with exact statements in `access_note`. Claims C10–C12;
   C3 moved C→B after S02's abstract was verified via Crossref. 18 assessments,
   28 task weights. Totals: 23 sources, 17 regions, 11 claims (all class B,
-  all draft), 4 datasets.
+  all published by owner decision), 4 datasets.
 - **API:** `GET /api/v1/compare/options`, `GET /api/v1/compare`.
 - **Frontend:** `/` (featured Egyptian candidates), `/explore`, `/report`
   (print/PDF + JSON download), `/sites`.
@@ -63,7 +63,7 @@ evidence → traceable report. See `docs/DECISIONS.md` P2-08…P2-14.
 | Migrations | base → 0006 upgrade, downgrade to 0005, re-upgrade: OK; FK check empty | 0 |
 
 **Still open (honest list)**
-1. Every claim is `draft`; publishing is the owner's decision (README explains how).
+1. All 11 claims are published (owner decision, 2026-11-12); each still carries its limitations and open gates.
 2. Most sources are abstract- or page-level reads; no claim is class A.
 3. Dimension coverage is thin by design: only dimensions with evidence on both
    sides are assessed. More sources → more coverage.
