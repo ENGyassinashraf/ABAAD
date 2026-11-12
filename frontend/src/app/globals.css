@@ -28,3 +28,9 @@ html {
   outline: 3px solid var(--color-olive);
   outline-offset: 2px;
 }
+
+@media print {
+  html, body { background: #fff; }
+  a { color: inherit; }
+  .report h2 { break-after: avoid; }
+}

@@ -27,6 +27,8 @@ uv run --frozen python scripts/portcheck.py "$API_PORT" "$WEB_PORT"
 
 echo "Applying database migrations…"
 uv run --frozen alembic -c backend/alembic.ini upgrade head
+echo "Loading curated sites, sources and comparison data…"
+uv run --frozen python scripts/load_curation.py
 
 # Each background job gets its own process group (job control), so
 # 'make stop' can stop exactly the processes started here and nothing else.

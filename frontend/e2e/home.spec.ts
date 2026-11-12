@@ -8,7 +8,7 @@ test("home page shows the temporary wordmark, slogan and a live API/database sta
   await expect(page.getByRole("heading", { level: 1 })).toContainText("ABAAD");
   await expect(page.getByText("Different Dimensions. One Connection.").first()).toBeVisible();
   await expect(page.getByText(/Temporary text wordmark/)).toBeVisible();
-  await expect(page.getByTestId("phase-notice")).toContainText("No comparisons, scores or scientific results");
+  await expect(page.getByTestId("phase-notice")).toContainText("Missing data is shown as unknown, never as zero");
 
   // Frontend -> Next.js proxy -> FastAPI /api/v1/health -> SQLite
   const status = page.getByTestId("api-status");

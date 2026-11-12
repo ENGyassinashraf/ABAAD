@@ -92,7 +92,7 @@ P2-07) for what changed and why, and `docs/reports/PHASE2_COMPLETION.md`
 for the full status.
 
 ```
-make migrate         # apply migrations 0003/0004 (schema + seed bodies/tasks)
+make migrate         # apply migrations 0003-0006 (schema, seed bodies/tasks, comparison engine)
 make load-curation    # load curation/*.json (sources, regions, geometries, claims, datasets)
 make verify-data      # checks data/manifest.json AND the curated database
 make ingest-list       # list planned dataset products (no network)
@@ -108,11 +108,47 @@ feature, never to Yungay or to the Atacama region as a whole.
 
 Read-only endpoints: `GET /api/v1/{bodies,regions,regions/{code}/geometries,tasks,claims,sources,datasets,assets,coverage}`.
 
+## The comparison app
+
+`make dev` now migrates **and loads the curated data**, then serves the app at
+http://localhost:3000:
+
+| Page | What it does |
+| --- | --- |
+| `/` | Overview, the three featured Egyptian candidates (one click to their comparison) |
+| `/explore` | 1 target (Mars/Moon) → 2 reference region → 3 research task → 4 ranked results, map, evidence |
+| `/report?reference=…&task=…` | Printable, traceable report (print → PDF) and JSON download |
+| `/sites` | Every Earth analog site (3 Egyptian + global) and every planetary reference region |
+
+**Sites.** Featured Egyptian candidates: Gilf Kebir crater-like structures,
+Western Desert aeolian landforms, Dakhla Depression inverted channels.
+Global sites: Atacama (Yungay, ARADS drilling site), McMurdo Dry Valleys
+(University Valley), Holuhraun. Planetary references: Gale Crater, Bagnold
+Dunes, Jezero Crater, Arabia Terra, Elysium Planitia, North Polar Sand Sea,
+Lunar South Pole, Shackleton Crater.
+
+**Method** (Project & Scientific Guide §06, implemented in `science/src/abaad_science/scoring.py`):
+`Score = 100 × Σ(w·s) / Σ(w)` over assessed dimensions; `Coverage` is shown
+separately; a missing assessment is *unknown*, never zero; below 50 % coverage
+a candidate is "insufficient evidence" and is not ranked. Each similarity `s`
+is a named rubric level (strong 1 · close 0.75 · partial 0.5 · weak 0.25 ·
+mismatch 0) with a rationale and a source on **both** the Earth and planetary
+side (`curation/comparison.json`). Weights per task carry a written rationale.
+
+API: `GET /api/v1/compare/options`, `GET /api/v1/compare?reference=<code>&task=<code>`.
+
+**Publishing claims** is an owner decision: every claim is `draft`, so the app
+shows its class and limitations but withholds its text. To publish one, set
+`"publication_state": "published"` for it in `curation/claims.json` and run
+`make load-curation` (the database refuses publication unless the claim's
+evidence class is supported). For a local demo of draft text only, start the
+API with `ABAAD_ALLOW_UNPUBLISHED_API=1`.
+
 ## Repository layout
 
 ```
 backend/     FastAPI app (src/abaad_api), Alembic migrations, tests
-science/     abaad_science — plain-Python science engine (placeholder in Phase 1)
+science/     abaad_science — plain-Python scoring engine (task-weighted score + coverage)
 frontend/    Next.js app, Playwright e2e tests, MapLibre spike
 scripts/     dev/stop, backup/restore, verify-data, doctor, port check, load_curation, ingest/
 curation/    committed, reviewable Phase 2 source/region/geometry/claim/dataset JSON

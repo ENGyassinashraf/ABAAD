@@ -12,6 +12,68 @@ subsequent pre-merge hardening pass driven by `ABAAD_Phase_2_PreMerge_
 Hardening_Spec.md` (findings F-01…F-15). Both are reflected here as the
 final state of the branch.
 
+## 0. Current status — comparison app (supersedes the figures further down where they conflict)
+
+**Scope:** at the owner's request the comparison app described in the
+*ABAAD Project & Scientific Guide* (formerly "Phase 3") was built on top of
+Phase 2: target → reference region → task → ranked results with map and
+evidence → traceable report. See `docs/DECISIONS.md` P2-08…P2-14.
+
+**What changed since the hardening pass**
+- **Map fixed:** the eight map-spike e2e failures were a path bug in
+  `frontend/scripts/copy-maplibre-worker.mjs` (no URL-decoding, so a path with
+  a space wrote the worker to a bogus `%20` directory), not a network problem.
+- **Scoring engine** (`science/…/scoring.py`): Guide §06 score and coverage,
+  unknown ≠ zero, < 50 % coverage = insufficient evidence (not ranked).
+- **Migration 0006:** comparison dimensions, per-task weights with rationale,
+  rubric-constrained dimension assessments citing an Earth-side and a
+  planetary-side source; `rover_mobility` task for Mars and Moon.
+- **Curated data:** references Gale Crater, Bagnold Dunes, Jezero Crater, Lunar
+  South Pole, Shackleton (USGS gazetteer centers where they exist; recorded
+  gaps for Bagnold Dunes and the South Pole). 12 new sources (S14–S25), all
+  opened on 2026-11-12 with exact statements in `access_note`. Claims C10–C12;
+  C3 moved C→B after S02's abstract was verified via Crossref. 18 assessments,
+  28 task weights. Totals: 23 sources, 17 regions, 11 claims (all class B,
+  all draft), 4 datasets.
+- **API:** `GET /api/v1/compare/options`, `GET /api/v1/compare`.
+- **Frontend:** `/` (featured Egyptian candidates), `/explore`, `/report`
+  (print/PDF + JSON download), `/sites`.
+- `make dev` and the e2e backend now load the curated data automatically.
+
+**Headline results on the curated data**
+
+| Reference × task | Result |
+|---|---|
+| Bagnold Dunes × aeolian | Western Desert ranked #1, score 64.3, coverage 70 % |
+| Jezero × fluvial | Dakhla ranked #1, score 41.7, coverage 60 % |
+| Jezero × GPR/subsurface | Gilf Kebir ranked #1, score 45.0, coverage 50 % |
+| Gale × GPR/subsurface | nobody ranked — Gilf Kebir 10 % coverage (no Gale subsurface source) |
+| Elysium Planitia × basaltic volcanology | Holuhraun ranked #1, score 75.0, coverage 60 % |
+| Lunar South Pole × rover mobility | nobody ranked — documented environment mismatches only |
+
+**Tests (this Mac, macOS arm64, exact exit codes)**
+
+| Command | Result | Exit |
+|---|---|---|
+| `uv run pytest` (backend + science + scripts) | 140 passed, 0 failed, 0 skipped | 0 |
+| `pnpm run typecheck` | clean | 0 |
+| `pnpm run test:unit` | 14 passed | 0 |
+| `pnpm run build` | success; routes `/`, `/explore`, `/report`, `/sites`, `/dev/map-spike` | 0 |
+| `pnpm exec playwright test` (real Chrome, real OpenFreeMap tiles) | **17 passed, 0 failed, 0 skipped** (3 home, 8 map spike incl. T1, 6 full-journey) | 0 |
+| Migrations | base → 0006 upgrade, downgrade to 0005, re-upgrade: OK; FK check empty | 0 |
+
+**Still open (honest list)**
+1. Every claim is `draft`; publishing is the owner's decision (README explains how).
+2. Most sources are abstract- or page-level reads; no claim is class A.
+3. Dimension coverage is thin by design: only dimensions with evidence on both
+   sides are assessed. More sources → more coverage.
+4. Bagnold Dunes, Lunar South Pole, Western Desert, Yungay, University Valley,
+   Holuhraun, McMurdo, Atacama: no verified location (gaps recorded).
+5. Gates V-1…V-11 unchanged; no real dataset downloaded (`download_url` null).
+6. Migration 0005 cannot be downgraded once datasets with a pending (NULL) CRS
+   are loaded (inherent to F-02).
+7. CI workflow not pushed (token lacks `workflow` scope).
+
 ## 1. What is implemented
 
 **Migrations** `0003`, `0004`, `0005` (`backend/migrations/versions/`):
