@@ -81,16 +81,44 @@ Defaults need no setup. Override with environment variables only if needed:
 | `ABAAD_CORS_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000` | Origins allowed to call the API directly |
 | `ABAAD_API_ORIGIN` | `http://127.0.0.1:8000` | Where Next.js proxies `/api/v1/*` |
 
+## Phase 2: curated science data (read-only)
+
+Phase 2 adds a provenance layer on top of the Phase 1 schema: sources,
+regions with hierarchy and geometry, site-task claims (Earth analog vs. a
+Mars/Moon reference), and dataset/data-asset metadata. Nothing is invented —
+a missing geometry or dataset is recorded as an explicit `coverage_gap`
+reason, never silently rendered as zero. See `docs/DECISIONS.md` (P2-01…
+P2-07) for what changed and why, and `docs/reports/PHASE2_COMPLETION.md`
+for the full status.
+
+```
+make migrate         # apply migrations 0003/0004 (schema + seed bodies/tasks)
+make load-curation    # load curation/*.json (sources, regions, geometries, claims, datasets)
+make verify-data      # checks data/manifest.json AND the curated database
+make ingest-list       # list planned dataset products (no network)
+make ingest DATASET=DS-05            # dry run (default; prints metadata, writes nothing)
+make ingest DATASET=DS-05 CONFIRM=1  # still refused unless ABAAD_ALLOW_REAL_DOWNLOADS=1 is set
+```
+
+Two claim_evidence_class corrections apply throughout: class `A` requires the
+claim's supporting source to be `full_text_checked` and peer-reviewed —
+never assigned from an abstract alone — and the Stoker et al. 2023
+life-detection/drilling claim attaches only to the `CL-ATACAMA-ARADS-SITE`
+feature, never to Yungay or to the Atacama region as a whole.
+
+Read-only endpoints: `GET /api/v1/{bodies,regions,regions/{code}/geometries,tasks,claims,sources,datasets,assets,coverage}`.
+
 ## Repository layout
 
 ```
 backend/     FastAPI app (src/abaad_api), Alembic migrations, tests
 science/     abaad_science — plain-Python science engine (placeholder in Phase 1)
 frontend/    Next.js app, Playwright e2e tests, MapLibre spike
-scripts/     dev/stop, backup/restore, verify-data, doctor, port check
+scripts/     dev/stop, backup/restore, verify-data, doctor, port check, load_curation, ingest/
+curation/    committed, reviewable Phase 2 source/region/geometry/claim/dataset JSON
 spike/       generator for the synthetic map-spike fixtures
 data/        scientific files (ignored by Git) + manifest.json
-docs/        DECISIONS.md and Phase 1 reports
+docs/        DECISIONS.md and Phase 1/2 reports
 var/         local database, backups, reports (ignored by Git)
 ```
 
