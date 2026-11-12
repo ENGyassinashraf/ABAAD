@@ -1,0 +1,36 @@
+# Minimal PR CI (hardening F-15). Deterministic checks only: no real
+# scientific data is downloaded, and nothing here depends on a public map
+# tile service. The Playwright e2e suite (including the T1 network smoke
+# test) is intentionally NOT run here -- it needs a real browser and, for
+# T1, real internet access to tiles.openfreemap.org; it stays a local/Mac
+# check (see README and docs/reports/PHASE2_COMPLETION.md).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - run: uv sync --frozen
+      - run: uv run --frozen pytest
+
+  frontend:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: corepack enable
+      - run: pnpm --dir frontend install --frozen-lockfile
+      - run: pnpm --dir frontend run typecheck
+      - run: pnpm --dir frontend run test:unit
+      - name: Production build (no dev server, no network-dependent checks)
+        run: pnpm --dir frontend run build
