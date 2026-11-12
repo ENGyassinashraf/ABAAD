@@ -145,7 +145,35 @@ def test_method_and_limitations_always_present_and_no_bare_percentage(client):
     assert body["limitations"]
     assert "not a percentage similarity" in body["method"]["not_a_similarity_percentage"]
     for c in body["candidates"]:  # a score is only ever reported next to its coverage and status
-        assert set(c) == {"region", "status", "score", "coverage", "rank", "dimensions", "claims"}
+        assert set(c) == {"region", "status", "score", "coverage", "rank", "dimensions", "claims", "evidence_quality"}
+
+
+def test_evidence_quality_is_separate_categorical_provenance(client):
+    wd = _cand(_compare(client, "MARS-BAGNOLD-DUNES", "aeolian_geomorphology"), "EG-WD")
+    eq = wd["evidence_quality"]
+    assessed = [d for d in wd["dimensions"] if d["similarity"] is not None]
+    assert eq["assessed_dimensions"] == len(assessed)
+    assert sum(eq["evidence_basis"].values()) == len(assessed)
+    assert set(eq["source_access"]) <= {"full_text_checked", "partial_full_text", "abstract_only", "secondary_record"}
+    assert eq["claim_class"]["code"] == "B" and eq["claim_class"]["label"]
+    # no number that could be confused with, or multiplied into, the score
+    assert not any(isinstance(v, float) for v in eq.values())
+
+
+def test_evidence_quality_has_no_claim_class_without_a_visible_claim(client, loaded_db):
+    conn = raw(loaded_db)
+    conn.execute("UPDATE site_task_claim SET publication_state = 'draft'")
+    body = _compare(client, "MARS-JEZERO-CRATER", "fluvial_paleohydrology")
+    assert all(c["evidence_quality"]["claim_class"] is None for c in body["candidates"])
+
+
+def test_approximate_outline_exposed_with_status_and_points_have_none(client):
+    refs = {r["region"]["code"]: r["region"] for r in client.get("/api/v1/compare/options").json()["references"]}
+    arabia = refs["MARS-ARABIA-TERRA"]["outline"]
+    assert arabia["geometry_status"] == "approximate" and arabia["crs_code"] == "IAU_2015:49900"
+    assert arabia["rings"][0][0] == [-12.0, 0.0] and arabia["rings"][0][-1] == arabia["rings"][0][0]
+    assert refs["MARS-GALE-CRATER"]["outline"] is None  # a point is never enlarged into an area
+    assert refs["MARS-BAGNOLD-DUNES"]["outline"] is None and refs["MARS-BAGNOLD-DUNES"]["geometry"] is None
 
 
 @pytest.mark.parametrize(
