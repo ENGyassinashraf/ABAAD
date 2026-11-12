@@ -8,6 +8,8 @@ with their name, never as a bare letter.
 
 from __future__ import annotations
 
+import os
+
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -64,6 +66,7 @@ class Claim(BaseModel):
     analog_region_code: str
     task_code: str
     reference_region_code: str | None
+    reference_body: str
     claim_evidence_class: EvidenceClass
     reference_pairing_basis: str
     supported_claim: str
@@ -120,30 +123,31 @@ def get_source(source_id: int) -> Source:
 
 
 _CLAIM_SELECT = (
-    "SELECT stc.id, ar.code, t.code, rr.code, stc.claim_evidence_class, stc.reference_pairing_basis,"
+    "SELECT stc.id, ar.code, t.code, rr.code, rb.code, stc.claim_evidence_class, stc.reference_pairing_basis,"
     " stc.supported_claim, stc.similarities, stc.differences, stc.not_supported, stc.spatial_scale,"
     " stc.limitations, stc.publication_state"
     " FROM site_task_claim stc"
     " JOIN region ar ON ar.id = stc.analog_region_id"
     " JOIN research_task t ON t.id = stc.task_id"
+    " JOIN planetary_body rb ON rb.id = stc.reference_body_id"
     " LEFT JOIN region rr ON rr.id = stc.reference_region_id"
 )
 
 
 def _build_claim(conn, row) -> Claim:
     claim_id = row[0]
-    cls = row[4]
+    cls = row[5]
     sources = conn.execute(
         text("SELECT publication_id, role, locator, note FROM site_task_claim_source WHERE claim_id = :id"),
         {"id": claim_id},
     ).all()
     has_disputing = any(s[1] == "disputes" for s in sources)
-    is_unpublished = row[12] != "published" or cls == "C"
+    is_unpublished = row[13] != "published" or cls == "C"
     return Claim(
         id=claim_id, analog_region_code=row[1], task_code=row[2], reference_region_code=row[3],
-        claim_evidence_class=EvidenceClass(code=cls, label=CLASS_LABELS[cls]),
-        reference_pairing_basis=row[5], supported_claim=row[6], similarities=row[7], differences=row[8],
-        not_supported=row[9], spatial_scale=row[10], limitations=row[11], publication_state=row[12],
+        reference_body=row[4], claim_evidence_class=EvidenceClass(code=cls, label=CLASS_LABELS[cls]),
+        reference_pairing_basis=row[6], supported_claim=row[7], similarities=row[8], differences=row[9],
+        not_supported=row[10], spatial_scale=row[11], limitations=row[12], publication_state=row[13],
         unpublished=is_unpublished, has_disputing_source=has_disputing,
         sources=[ClaimSource(source_id=s[0], role=s[1], locator=s[2], note=s[3]) for s in sources],
     )
@@ -168,6 +172,12 @@ def list_claims(
         clauses.append("stc.claim_evidence_class = :cls"); params["cls"] = claim_class
     if state:
         clauses.append("stc.publication_state = :state"); params["state"] = state
+    if include_unpublished and os.environ.get("ABAAD_ALLOW_UNPUBLISHED_API") != "1":
+        raise ApiError(
+            403, "forbidden",
+            "include_unpublished=true is restricted to local/test use (set ABAAD_ALLOW_UNPUBLISHED_API=1); "
+            "a production client never sees draft or class-C claims",
+        )
     if not include_unpublished:
         clauses.append("stc.publication_state = 'published' AND stc.claim_evidence_class <> 'C'")
     where = f" WHERE {' AND '.join(clauses)}" if clauses else ""

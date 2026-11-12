@@ -90,6 +90,9 @@ NEW_TABLE_CHECKS = {
     "processing_input": set(),
     "coverage_gap": {"ck_coverage_gap_slot_enum", "ck_coverage_gap_state_enum"},
 }
+# Hardening pass (0005): dataset.horizontal_crs is no longer forced into an
+# IAU_2015 family (F-02); a new explicit horizontal_crs_status replaces that.
+NEW_TABLE_CHECKS["dataset"] |= {"ck_dataset_horizontal_crs_status_enum", "ck_dataset_crs_status_shape"}
 
 EXPECTED_FKS = {  # (from_column, to_table) pairs present from 0001 onward
     "region": {("body_id", "planetary_body"), ("parent_region_id", "region")},
@@ -118,6 +121,17 @@ PHASE2_TRIGGERS = {
     "trg_claim_publish_requires_support_ins", "trg_claim_publish_requires_support_upd",
     "trg_dataset_crs_matches_body_ins", "trg_dataset_crs_matches_body_upd",
     "trg_processing_input_same_body_ins",
+}
+# Hardening (0005) permanently removes the forced-CRS-family triggers (F-02).
+TRIGGERS_REMOVED_IN_HARDENING = {"trg_dataset_crs_matches_body_ins", "trg_dataset_crs_matches_body_upd"}
+HARDENING_TRIGGERS = {
+    "trg_region_immutable_when_claimed_upd", "trg_research_task_immutable_when_claimed_upd",
+    "trg_claim_reference_matrix_ins", "trg_claim_reference_matrix_upd",
+    "trg_data_asset_validated_requires_verified_crs_ins", "trg_data_asset_validated_requires_verified_crs_upd",
+    "trg_data_asset_region_body_matches_ins", "trg_data_asset_region_body_matches_upd",
+    "trg_data_asset_raw_clipped_matches_dataset_ins", "trg_data_asset_raw_clipped_matches_dataset_upd",
+    "trg_processing_record_output_matches_asset_ins", "trg_processing_record_output_matches_asset_upd",
+    "trg_processing_input_same_body_upd",
 }
 EXPECTED_TRIGGERS = PHASE1_TRIGGERS  # at "0001" baseline
 EXPECTED_INDEXES = {
@@ -185,10 +199,12 @@ def assert_full_schema(db: Path, at_head: bool) -> None:
         for table, fks in FKS_ADDED_IN_PHASE2.items():
             assert fks <= s["fks"][table], f"{table}: Phase 2 foreign keys {fks - s['fks'][table]} missing"
 
-    expected_triggers = (PHASE1_TRIGGERS | PHASE2_TRIGGERS) if at_head else PHASE1_TRIGGERS
+    expected_triggers = (
+        (PHASE1_TRIGGERS | PHASE2_TRIGGERS | HARDENING_TRIGGERS) - TRIGGERS_REMOVED_IN_HARDENING
+    ) if at_head else PHASE1_TRIGGERS
     assert s["triggers"] == expected_triggers, f"trigger mismatch: {s['triggers'] ^ expected_triggers}"
     assert EXPECTED_INDEXES <= s["indexes"], f"missing indexes: {EXPECTED_INDEXES - s['indexes']}"
-    assert s["version"] == [("0004",)] if at_head else [("0001",)]
+    assert s["version"] == [("0005",)] if at_head else [("0001",)]
 
 
 def test_upgrade_from_clean_state(migrated_db: Path):
@@ -238,12 +254,12 @@ def test_triggers_still_fire_after_batch_rebuild(migrated_db: Path):
 def test_failed_migration_is_atomic(tmp_path: Path):
     """A migration that fails half-way must leave no partial change behind.
 
-    Uses revision "0005" (the first unused revision now that Phase 2 occupies
-    0003/0004) so it never collides with the real migration files copied below."""
+    Uses revision "0006" (the first unused revision now that Phase 2 occupies
+    0003/0004/0005) so it never collides with the real migration files copied below."""
     scripts = tmp_path / "migrations"
     shutil.copytree(ALEMBIC_INI.parent / "migrations", scripts)
-    (scripts / "versions" / "0005_broken.py").write_text(
-        'revision = "0005"\ndown_revision = "0004"\nbranch_labels = None\ndepends_on = None\n'
+    (scripts / "versions" / "0006_broken.py").write_text(
+        'revision = "0006"\ndown_revision = "0005"\nbranch_labels = None\ndepends_on = None\n'
         "from alembic import op\n"
         "def upgrade():\n"
         '    op.execute("DROP TRIGGER trg_measurement_no_gap_ins")\n'
@@ -256,7 +272,7 @@ def test_failed_migration_is_atomic(tmp_path: Path):
     cfg.set_main_option("script_location", str(scripts))
     import argparse
     cfg.cmd_opts = argparse.Namespace(x=[f"db={db}"])
-    command.upgrade(cfg, "0004")
+    command.upgrade(cfg, "0005")
     with pytest.raises(RuntimeError, match="deliberate failure"):
-        command.upgrade(cfg, "0005")
+        command.upgrade(cfg, "0006")
     assert_full_schema(db, at_head=True)

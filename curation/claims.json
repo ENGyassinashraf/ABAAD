@@ -1,12 +1,15 @@
 {
   "schema_version": 1,
-  "note": "Session corrections applied: (1) the former 'C4' Atacama-region-wide drilling claim is removed; Stoker et al. 2023 (S08) supports only the ARADS feature (C6), never the Atacama region or Yungay. (2) claim_evidence_class now follows the supporting source's access level only: A requires a full_text_checked AND peer-reviewed supporting source; B allows abstract_only, or a program_page/data_release supporting source; C is indirect/contextual and must stay 'draft'. Class is never assigned A from an abstract alone. All claims below are reclassified accordingly and all remain 'draft' pending the open verification gates (section 17 of the spec) and the owner's full-text reading (gate V-10).",
+  "note": "Session corrections applied: (1) the former 'C4' Atacama-region-wide drilling claim is removed; Stoker et al. 2023 (S08) supports only the ARADS feature (C6), never the Atacama region or Yungay. (2) claim_evidence_class now follows the supporting source's access level only: A requires a full_text_checked AND peer-reviewed supporting source; B allows abstract_only/partial_full_text, or a program_page/data_release supporting source; C is indirect/contextual and must stay 'draft'. Class is never assigned A from an abstract alone. (3) Hardening pass F-06: 'full_text_checked' means the complete source was read, not merely most of it. S06 and S08 were each read to only ~75-80% and are now 'partial_full_text', so C6 (previously the only class-A claim) is now class B. It is intentional and acceptable that this curated dataset currently contains ZERO class-A claims -- none has had its single supporting source read to completion. Every claim also carries an explicit reference_body (mars for all eight, since every Phase 2 research task is Mars-focused), enforced in the database regardless of whether reference_region_code is set. All claims below remain 'draft' pending the open verification gates (section 17 of the spec) and the owner's full-text reading (gate V-10).",
   "not_supported_statement": "This record does not support treating Earth weather, atmospheric pressure, radiation, gravity or atmospheric composition as equivalent to Mars or Moon conditions, and it is not a similarity score.",
   "claims": [
     {
-      "code": "C1", "analog_region_code": "EG-WD", "task_code": "aeolian_geomorphology",
+      "code": "C1",
+      "analog_region_code": "EG-WD",
+      "task_code": "aeolian_geomorphology",
       "reference_region_code": "MARS-NORTH-POLAR-SAND-SEA",
-      "claim_evidence_class": "B", "reference_pairing_basis": "region_specific_in_source",
+      "claim_evidence_class": "B",
+      "reference_pairing_basis": "region_specific_in_source",
       "publication_state": "draft",
       "supported_claim": "Egyptian barchan dunes, sand sheets, light/dark streaks, knob shadows and yardangs in the Western Desert are compared directly with dune forms seen in Viking images of Mars's north polar sand sea.",
       "similarities": "Aeolian bedforms (barchans, sand sheets, yardangs) in a hyperarid desert, compared image-to-image with Martian dune fields.",
@@ -15,13 +18,22 @@
       "spatial_scale": "Regional (Western Desert of Egypt) compared with a regional Mars feature (north polar sand sea), not a specific field site.",
       "limitations": "Only the abstract has been read (source_access = abstract_only); class capped at B until full text is checked (gate V-10). Reference pairing is only approximate at this access level.",
       "sources": [
-        {"source_code": "S01", "role": "supports", "locator": "abstract", "note": null}
-      ]
+        {
+          "source_code": "S01",
+          "role": "supports",
+          "locator": "abstract",
+          "note": null
+        }
+      ],
+      "reference_body": "mars"
     },
     {
-      "code": "C2", "analog_region_code": "EG-WD-DAKHLA", "task_code": "fluvial_paleohydrology",
+      "code": "C2",
+      "analog_region_code": "EG-WD-DAKHLA",
+      "task_code": "fluvial_paleohydrology",
       "reference_region_code": "MARS-ARABIA-TERRA",
-      "claim_evidence_class": "B", "reference_pairing_basis": "project_decision_provisional",
+      "claim_evidence_class": "B",
+      "reference_pairing_basis": "project_decision_provisional",
       "publication_state": "draft",
       "supported_claim": "Inverted stream channels at the Dakhla site, formed by differential erosion of indurated channel-fill material, are used as a terrestrial process analog for inverted fluvial channels mapped in Arabia Terra on Mars.",
       "differences": "Not stated in abstract_only reading of S05; to be completed from full text.",
@@ -30,14 +42,28 @@
       "spatial_scale": "Dakhla site and its mapped area per Zaki et al. 2018 Table 1 (owner-reported, not yet verified); Mars side is the Davis et al. 2019 Section 3 study extent for Arabia Terra, not a Dakhla-specific Mars feature.",
       "limitations": "The pairing of Dakhla with Arabia Terra is a project decision, not stated by either source (reference_pairing_basis = project_decision_provisional). The Earth-side source is read only at abstract/highlights level, so class is capped at B. Awaiting gate V-1 (owner-reported Table 1 / Figure 13) before any geometry or state change.",
       "sources": [
-        {"source_code": "S05", "role": "supports", "locator": "abstract / highlights", "note": null},
-        {"source_code": "S06", "role": "context", "locator": "Section 3", "note": "Mars-side description only; full text substantially read."}
-      ]
+        {
+          "source_code": "S05",
+          "role": "supports",
+          "locator": "abstract / highlights",
+          "note": null
+        },
+        {
+          "source_code": "S06",
+          "role": "context",
+          "locator": "Section 3",
+          "note": "Mars-side description only; full text substantially read."
+        }
+      ],
+      "reference_body": "mars"
     },
     {
-      "code": "C3", "analog_region_code": "EG-WD-GILF-KEBIR", "task_code": "shallow_subsurface_gpr",
+      "code": "C3",
+      "analog_region_code": "EG-WD-GILF-KEBIR",
+      "task_code": "shallow_subsurface_gpr",
       "reference_region_code": null,
-      "claim_evidence_class": "C", "reference_pairing_basis": "body_level_only",
+      "claim_evidence_class": "C",
+      "reference_pairing_basis": "body_level_only",
       "publication_state": "draft",
       "supported_claim": "270 MHz ground-penetrating radar surveys over small buried crater-like structures of disputed origin in the south-western Egyptian desert are used as a process analog for shallow subsurface sounding on Mars. The structures' origin is disputed; this record never calls them confirmed impact craters.",
       "differences": "Not stated at the access level reached for S02/S03; to be completed from full text.",
@@ -46,15 +72,34 @@
       "spatial_scale": "A field of crater-like structures east of the Gilf Kebir plateau (>40,000 km^2 per S03), compared only at Mars body level (no specific reference region).",
       "limitations": "S02 was reached only through repository records (full text blocked); S03 only through a third-party automated summary, which is explicitly distinguished here from a manually read primary source. Neither reaches abstract-equivalent access, so class is capped at C (indirect/contextual) and this claim cannot be published while class C. Orti et al. 2008 (S04) disputes the impact-origin hypothesis specifically, not the GPR measurements themselves.",
       "sources": [
-        {"source_code": "S02", "role": "supports", "locator": "repository record (full text blocked)", "note": null},
-        {"source_code": "S03", "role": "context", "locator": "automated summary of a hosted copy", "note": "two unconfirmed origin hypotheses: hydrothermal vent complexes vs. meteorite impacts."},
-        {"source_code": "S04", "role": "disputes", "locator": "abstract", "note": "disputes the impact-origin hypothesis only, not the GPR measurements."}
-      ]
+        {
+          "source_code": "S02",
+          "role": "supports",
+          "locator": "repository record (full text blocked)",
+          "note": null
+        },
+        {
+          "source_code": "S03",
+          "role": "context",
+          "locator": "automated summary of a hosted copy",
+          "note": "two unconfirmed origin hypotheses: hydrothermal vent complexes vs. meteorite impacts."
+        },
+        {
+          "source_code": "S04",
+          "role": "disputes",
+          "locator": "abstract",
+          "note": "disputes the impact-origin hypothesis only, not the GPR measurements."
+        }
+      ],
+      "reference_body": "mars"
     },
     {
-      "code": "C5", "analog_region_code": "CL-ATACAMA-YUNGAY", "task_code": "shallow_subsurface_gpr",
+      "code": "C5",
+      "analog_region_code": "CL-ATACAMA-YUNGAY",
+      "task_code": "shallow_subsurface_gpr",
       "reference_region_code": null,
-      "claim_evidence_class": "B", "reference_pairing_basis": "body_level_only",
+      "claim_evidence_class": "B",
+      "reference_pairing_basis": "body_level_only",
       "publication_state": "draft",
       "supported_claim": "Multi-frequency ground-penetrating radar and electromagnetic induction surveys at the Yungay hyperarid study site characterize shallow subsurface structure as an analog for geophysical sounding methods on Mars.",
       "differences": "Not stated in abstract_only reading of S09; to be completed from full text.",
@@ -63,28 +108,46 @@
       "spatial_scale": "A 110 x 60 m (0.66 ha) survey area at Yungay per the S09 abstract; no site boundary is stored (Yungay geometry held pending gate V-2).",
       "limitations": "Only the abstract has been read (source_access = abstract_only); class capped at B. The authors state soil samples are still needed. Site coordinates for Yungay itself were not retrieved from this source.",
       "sources": [
-        {"source_code": "S09", "role": "supports", "locator": "abstract", "note": null}
-      ]
+        {
+          "source_code": "S09",
+          "role": "supports",
+          "locator": "abstract",
+          "note": null
+        }
+      ],
+      "reference_body": "mars"
     },
     {
-      "code": "C6", "analog_region_code": "CL-ATACAMA-ARADS-SITE", "task_code": "life_detection_drilling",
+      "code": "C6",
+      "analog_region_code": "CL-ATACAMA-ARADS-SITE",
+      "task_code": "life_detection_drilling",
       "reference_region_code": null,
-      "claim_evidence_class": "A", "reference_pairing_basis": "body_level_only",
+      "claim_evidence_class": "B",
+      "reference_pairing_basis": "body_level_only",
       "publication_state": "draft",
       "supported_claim": "A simulated Mars life-detection mission at the ARADS site drilled to 72 cm and ran automated sample handling and life-detection instruments (SOLID, PISCES, a Wet Chemistry Laboratory cell), as a process analog for life-detection drilling on Mars. This is specific to the ARADS site, 22.4 km from the Yungay field camp; it is not an Atacama-region-wide claim (session correction 1).",
       "differences": "Not stated in this reading of S08; to be completed from the remaining ~20% of the full text.",
       "similarities": "Automated drilling and in-situ life-detection instrument operation in a hyperarid, low-biomass setting.",
       "not_supported": "This record does not support treating Earth weather, atmospheric pressure, radiation, gravity or atmospheric composition as equivalent to Mars or Moon conditions, and it is not a similarity score.",
       "spatial_scale": "The ARADS drilling field site at -24.101642, -70.138175 (point locator, as printed in S08), not the Atacama region and not Yungay.",
-      "limitations": "Approximately 80% of the open-access article was read; the remaining portion is not yet checked. This claim must never be attached to CL-ATACAMA-YUNGAY or to CL-ATACAMA as a whole.",
+      "limitations": "Hardening correction F-06: only approximately 80% of the open-access article was read, so S08's source_access is honestly 'partial_full_text', not 'full_text_checked' -- this claim is capped at class B, never A, until the remaining ~20% is read. This claim must never be attached to CL-ATACAMA-YUNGAY or to CL-ATACAMA as a whole.",
       "sources": [
-        {"source_code": "S08", "role": "supports", "locator": "open-access text (~80% read)", "note": null}
-      ]
+        {
+          "source_code": "S08",
+          "role": "supports",
+          "locator": "open-access text (~80% read)",
+          "note": null
+        }
+      ],
+      "reference_body": "mars"
     },
     {
-      "code": "C7", "analog_region_code": "AQ-MDV", "task_code": "cold_arid_environment",
+      "code": "C7",
+      "analog_region_code": "AQ-MDV",
+      "task_code": "cold_arid_environment",
       "reference_region_code": null,
-      "claim_evidence_class": "B", "reference_pairing_basis": "body_level_only",
+      "claim_evidence_class": "B",
+      "reference_pairing_basis": "body_level_only",
       "publication_state": "draft",
       "supported_claim": "The McMurdo Dry Valleys have been used since NASA's early astrobiology work for life-detection testing in a cold, hyperarid terrestrial environment, as a body-level analog for cold arid Mars environments.",
       "differences": "Not stated on the NASA program page; to be completed from a peer-reviewed source if one is identified.",
@@ -93,13 +156,22 @@
       "spatial_scale": "The McMurdo Dry Valleys region as a whole; no region-level geometry exists yet.",
       "limitations": "Supported only by a NASA program page (not peer-reviewed); class is B because the page names no specific locality and is not a peer-reviewed study. A peer-reviewed source is wanted but not required to proceed.",
       "sources": [
-        {"source_code": "S10", "role": "supports", "locator": "page text (McMurdo paragraph)", "note": null}
-      ]
+        {
+          "source_code": "S10",
+          "role": "supports",
+          "locator": "page text (McMurdo paragraph)",
+          "note": null
+        }
+      ],
+      "reference_body": "mars"
     },
     {
-      "code": "C8", "analog_region_code": "AQ-MDV-UNIVERSITY-VALLEY", "task_code": "ice_cemented_ground_drilling",
+      "code": "C8",
+      "analog_region_code": "AQ-MDV-UNIVERSITY-VALLEY",
+      "task_code": "ice_cemented_ground_drilling",
       "reference_region_code": null,
-      "claim_evidence_class": "B", "reference_pairing_basis": "body_level_only",
+      "claim_evidence_class": "B",
+      "reference_pairing_basis": "body_level_only",
       "publication_state": "draft",
       "supported_claim": "University Valley has ice-cemented ground similar to some Martian terrain and was used to test drilling equipment, as a body-level analog for ice-cemented ground drilling on Mars.",
       "differences": "Not stated on the NASA program page; to be completed from a peer-reviewed source if one is identified.",
@@ -108,13 +180,22 @@
       "spatial_scale": "University Valley specifically (named on the NASA page), but with no position source yet (gate V-6).",
       "limitations": "Supported only by a NASA program page; class is B. West Lake Bonney is explicitly not created as a region (it hosts unrelated autonomous underwater vehicle work).",
       "sources": [
-        {"source_code": "S10", "role": "supports", "locator": "page text (University Valley paragraph)", "note": null}
-      ]
+        {
+          "source_code": "S10",
+          "role": "supports",
+          "locator": "page text (University Valley paragraph)",
+          "note": null
+        }
+      ],
+      "reference_body": "mars"
     },
     {
-      "code": "C9", "analog_region_code": "IS-HOLUHRAUN", "task_code": "basaltic_volcanology",
+      "code": "C9",
+      "analog_region_code": "IS-HOLUHRAUN",
+      "task_code": "basaltic_volcanology",
       "reference_region_code": "MARS-ELYSIUM-PLANITIA",
-      "claim_evidence_class": "B", "reference_pairing_basis": "region_specific_in_source",
+      "claim_evidence_class": "B",
+      "reference_pairing_basis": "region_specific_in_source",
       "publication_state": "draft",
       "supported_claim": "The 2014-2015 Holuhraun lava flow-field (fissure systems, transitional/rubbly lava morphologies, lava-water interaction, polygonal terrain) is used directly by Voigt et al. 2025 as a planetary analog for young volcanic terrains in Elysium Planitia, Mars.",
       "differences": "Not stated in abstract_only reading of S07; to be completed from full text.",
@@ -123,12 +204,21 @@
       "spatial_scale": "The 2014-2015 Holuhraun flow-field as a whole; no outline geometry exists yet (gate V-3).",
       "limitations": "Only the abstract has been read (source_access = abstract_only); class capped at B until full text is checked (gate V-10). NASA GIFT Iceland 2025 is excluded as evidence for this claim (D-P2-08): it describes June 2025 work at Fagradalsfjall, Hekla and Lake Kleifarvatn, and does not mention Holuhraun.",
       "sources": [
-        {"source_code": "S07", "role": "supports", "locator": "abstract", "note": null}
-      ]
+        {
+          "source_code": "S07",
+          "role": "supports",
+          "locator": "abstract",
+          "note": null
+        }
+      ],
+      "reference_body": "mars"
     }
   ],
   "excluded_sources": [
-    {"title": "NASA, Goddard Instrument Field Team, Iceland 2025", "decision": "excluded as evidence for Holuhraun (D-P2-08)",
-     "reason": "Describes June 2025 work at Fagradalsfjall, Hekla, Lake Kleifarvatn and other sites; Holuhraun is not mentioned."}
+    {
+      "title": "NASA, Goddard Instrument Field Team, Iceland 2025",
+      "decision": "excluded as evidence for Holuhraun (D-P2-08)",
+      "reason": "Describes June 2025 work at Fagradalsfjall, Hekla, Lake Kleifarvatn and other sites; Holuhraun is not mentioned."
+    }
   ]
 }

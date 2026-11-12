@@ -28,6 +28,14 @@ def client(monkeypatch, migrated_db: Path) -> TestClient:
     dbmod.get_engine.cache_clear()
 
 
+@pytest.fixture
+def local_client(monkeypatch, client: TestClient) -> TestClient:
+    """Hardening F-09: include_unpublished=true needs this env var set; it is
+    restricted to local/test use, never a production default."""
+    monkeypatch.setenv("ABAAD_ALLOW_UNPUBLISHED_API", "1")
+    return client
+
+
 def test_bodies_lists_three(client):
     r = client.get("/api/v1/bodies")
     assert r.status_code == 200
@@ -71,18 +79,27 @@ def test_arads_site_has_source_traced_point_geometry(client):
     assert geoms[0]["geometry_role"] == "point_locator"
 
 
-def test_claims_hide_drafts_and_class_c_by_default(client):
-    r = client.get("/api/v1/claims")
+def test_claims_hide_drafts_and_class_c_by_default(local_client):
+    r = local_client.get("/api/v1/claims")
     assert r.json()["total"] == 0  # every seeded claim is still 'draft'
 
-    r2 = client.get("/api/v1/claims", params={"include_unpublished": "true"})
+    r2 = local_client.get("/api/v1/claims", params={"include_unpublished": "true"})
     body = r2.json()
     assert body["total"] == 8
     assert all(item["unpublished"] for item in body["items"])
     classes = {item["claim_evidence_class"]["code"] for item in body["items"]}
-    assert classes == {"A", "B", "C"}
+    # Hardening F-06: zero class-A claims is intentional -- no seeded claim's
+    # single supporting source has been read to completion.
+    assert classes == {"B", "C"}
     for item in body["items"]:
         assert item["claim_evidence_class"]["label"]  # never a bare letter
+        assert item["reference_body"] == "mars"
+
+
+def test_include_unpublished_forbidden_without_local_gate(client):
+    r = client.get("/api/v1/claims", params={"include_unpublished": "true"})
+    assert r.status_code == 403
+    assert r.json()["code"] == "forbidden"
 
 
 def test_claim_evidence_class_never_a_bare_letter(client):
@@ -98,8 +115,8 @@ def test_no_numeric_score_field_anywhere(client):
         assert forbidden not in text_
 
 
-def test_atacama_arads_claim_never_attached_to_yungay(client):
-    r = client.get("/api/v1/claims", params={"include_unpublished": "true", "region": "CL-ATACAMA-YUNGAY"})
+def test_atacama_arads_claim_never_attached_to_yungay(local_client):
+    r = local_client.get("/api/v1/claims", params={"include_unpublished": "true", "region": "CL-ATACAMA-YUNGAY"})
     tasks = {item["task_code"] for item in r.json()["items"]}
     assert "life_detection_drilling" not in tasks
 

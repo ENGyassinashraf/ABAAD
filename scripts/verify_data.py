@@ -192,10 +192,27 @@ def verify_curation_db(db_path: Path) -> tuple[bool, list[str]]:
     ).fetchall()
     for code, slot in both:
         error(f"region {code}: both a coverage_gap and a region_geometry row exist for slot {slot!r}")
+    ordinary_gap_count = 0
+    not_applicable_count = 0
     for code, slot, state, reason in conn.execute(
         "SELECT r.code, g.slot, g.state, g.reason FROM coverage_gap g JOIN region r ON r.id = g.region_id ORDER BY r.code, g.slot"
     ):
-        info(f"gap: {code}/{slot} [{state}] {reason}")
+        # Hardening F-03: not_applicable is never an ordinary gap and must
+        # never share a count/denominator with an actual missing dataset.
+        if state == "not_applicable":
+            not_applicable_count += 1
+            info(f"not_applicable: {code}/{slot} {reason}")
+        else:
+            ordinary_gap_count += 1
+            info(f"gap: {code}/{slot} [{state}] {reason}")
+
+    # Hardening F-02 (defense in depth; the DB trigger is the hard gate): no
+    # asset may be validated against a dataset whose CRS is not verified.
+    for asset_id, in conn.execute(
+        "SELECT a.id FROM data_asset a JOIN dataset d ON d.id = a.dataset_id"
+        " WHERE a.validation_status IN ('validated', 'validated_with_issues') AND d.horizontal_crs_status <> 'verified'"
+    ):
+        error(f"data_asset {asset_id}: validated against a dataset whose horizontal_crs_status is not 'verified'")
 
     # --- Candidates (information only) -----------------------------------------
     for code, cls, state in conn.execute(
@@ -214,9 +231,11 @@ def verify_curation_db(db_path: Path) -> tuple[bool, list[str]]:
     for code, in conn.execute("SELECT code FROM dataset WHERE code LIKE 'TEST-%' OR code LIKE 'SYNTH-%'"):
         error(f"dataset {code}: TEST-/SYNTH- codes must never appear in a production database")
 
-    gap_count = sum(1 for m in messages if m.startswith("INFO      gap:"))
     conn.close()
-    messages.append(f"gaps: {len(both)} inconsistent with an existing geometry, {gap_count} recorded with reasons")
+    messages.append(
+        f"gaps: {len(both)} inconsistent with an existing geometry, {ordinary_gap_count} ordinary gaps recorded"
+        f" with reasons, {not_applicable_count} not_applicable (never counted as a gap)"
+    )
     messages.append("Scientific completeness is not claimed by this report.")
     return ok, messages
 

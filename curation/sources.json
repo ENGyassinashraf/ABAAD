@@ -88,12 +88,12 @@
       "year": 2019,
       "source_type": "journal_article",
       "peer_reviewed": true,
-      "source_access": "full_text_checked",
+      "source_access": "partial_full_text",
+      "access_note": "Open-access text; approximately 75% of the article was read (first ~100,000 of ~134,000 characters), including the full Section 3 study-extent statement relied upon here. The remaining ~25% was not read, so this is NOT full_text_checked (hardening correction F-06).",
       "institution": null,
       "licence": "open access",
       "citation": "Davis, J.M. et al. (2019). A diverse array of fluvial depositional systems in Arabia Terra. J. Geophys. Res. Planets 124(7):1913-1934.",
-      "accessed_on": "2026-11-12",
-      "note": "Open-access text; approximately 75% of the article was read (first ~100,000 of ~134,000 characters), including the full Section 3 study-extent statement relied upon here."
+      "accessed_on": "2026-11-12"
     },
     {
       "code": "S07",
@@ -120,12 +120,12 @@
       "year": 2023,
       "source_type": "journal_article",
       "peer_reviewed": true,
-      "source_access": "full_text_checked",
+      "source_access": "partial_full_text",
+      "access_note": "Open-access text; approximately 80% of the article was read (first ~100,000 of ~125,000 characters). The remaining ~20% was not read, so this is NOT full_text_checked (hardening correction F-06; downgrades claim C6 from A to B). Site coordinates (-24.101642, -70.138175) support the ARADS drilling site specifically, 22.4 km from the Yungay field camp -- NOT the Atacama region as a whole (Phase 2 correction 1).",
       "institution": null,
       "licence": "open access",
       "citation": "Stoker, C.R. et al. (2023). A mission simulating the search for life on Mars... Astrobiology 23(12):1284-1302.",
-      "accessed_on": "2026-11-12",
-      "note": "Open-access text; approximately 80% of the article was read (first ~100,000 of ~125,000 characters). Site coordinates (-24.101642, -70.138175) support the ARADS drilling site specifically, 22.4 km from the Yungay field camp -- NOT the Atacama region as a whole (Phase 2 correction 1)."
+      "accessed_on": "2026-11-12"
     },
     {
       "code": "S09",

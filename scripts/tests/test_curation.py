@@ -40,7 +40,9 @@ def test_real_curation_files_load_cleanly(tmp_path):
     assert conn.execute("SELECT count(*) FROM coverage_gap").fetchone()[0] == 10
     # Session correction 1: no claim exists on CL-ATACAMA itself (the former "C4"
     # Atacama-wide drilling claim is removed), and the ARADS feature carries
-    # exactly one class-A claim sourced only from Stoker et al. 2023 (S08).
+    # exactly one claim sourced only from Stoker et al. 2023 (S08). Hardening
+    # F-06 downgrades it from A to B: S08 was read to only ~80%, so it is
+    # 'partial_full_text', not 'full_text_checked'.
     atacama_claims = conn.execute(
         "SELECT count(*) FROM site_task_claim stc JOIN region r ON r.id = stc.analog_region_id"
         " WHERE r.code = 'CL-ATACAMA'"
@@ -50,7 +52,12 @@ def test_real_curation_files_load_cleanly(tmp_path):
         "SELECT stc.claim_evidence_class FROM site_task_claim stc JOIN region r ON r.id = stc.analog_region_id"
         " WHERE r.code = 'CL-ATACAMA-ARADS-SITE'"
     ).fetchone()
-    assert arads_class == ("A",)
+    assert arads_class == ("B",)
+    arads_reference_body = conn.execute(
+        "SELECT b.code FROM site_task_claim stc JOIN region r ON r.id = stc.analog_region_id"
+        " JOIN planetary_body b ON b.id = stc.reference_body_id WHERE r.code = 'CL-ATACAMA-ARADS-SITE'"
+    ).fetchone()
+    assert arads_reference_body == ("mars",)
     yungay_life_detection_claims = conn.execute(
         "SELECT count(*) FROM site_task_claim stc JOIN region r ON r.id = stc.analog_region_id"
         " JOIN research_task t ON t.id = stc.task_id"
@@ -80,7 +87,7 @@ def test_class_a_rejected_without_full_text_support(tmp_path, monkeypatch):
             "claims": [
                 {
                     "code": "BAD-1", "analog_region_code": "EG-WD", "task_code": "aeolian_geomorphology",
-                    "reference_region_code": None, "claim_evidence_class": "A",
+                    "reference_region_code": None, "reference_body": "mars", "claim_evidence_class": "A",
                     "reference_pairing_basis": "body_level_only",
                     "supported_claim": "x", "similarities": "x", "differences": "x",
                     "not_supported": "x", "spatial_scale": "x", "limitations": "x",

@@ -67,6 +67,7 @@ class Geometry(BaseModel):
     positional_uncertainty_m: float | None
     uncertainty_note: str | None
     source_publication_id: int | None
+    source_dataset_id: int | None
     source_locator: str | None
 
 
@@ -79,11 +80,17 @@ class CoverageGapOut(BaseModel):
 class CoverageCell(BaseModel):
     region_code: str
     slot: str
-    status: str  # present | gap | not_yet_curated
+    status: str  # present | gap | not_applicable | not_yet_curated (F-03/F-04: exactly these four)
     gap: CoverageGapOut | None = None
+    inconsistent: bool = False  # a gap row AND a qualifying geometry/asset both exist (F-03)
 
 
 SLOTS = ("geometry", "elevation", "imagery", "literature_observations")
+# Which dataset.surface_type values satisfy which coverage slot.
+_SLOT_SURFACE_TYPES = {
+    "elevation": {"dsm", "dtm", "altimetry_grid"},
+    "imagery": {"reflectance"},
+}
 
 
 def _row_to_summary(r: Any) -> RegionSummary:
@@ -175,7 +182,7 @@ def get_region_geometries(code: str) -> list[Geometry]:
             text(
                 "SELECT geometry_role, encoding, geometry_text, crs_code, coordinate_units, latitude_type,"
                 " longitude_direction, longitude_domain, axis_order, geometry_status, geometry_method,"
-                " positional_uncertainty_m, uncertainty_note, source_publication_id, source_locator"
+                " positional_uncertainty_m, uncertainty_note, source_publication_id, source_dataset_id, source_locator"
                 " FROM region_geometry WHERE region_id = :id ORDER BY geometry_role"
             ),
             {"id": row[10]},
@@ -185,7 +192,7 @@ def get_region_geometries(code: str) -> list[Geometry]:
             geometry_role=g[0], encoding=g[1], geometry_text=g[2], crs_code=g[3], coordinate_units=g[4],
             latitude_type=g[5], longitude_direction=g[6], longitude_domain=g[7], axis_order=g[8],
             geometry_status=g[9], geometry_method=g[10], positional_uncertainty_m=g[11], uncertainty_note=g[12],
-            source_publication_id=g[13], source_locator=g[14],
+            source_publication_id=g[13], source_dataset_id=g[14], source_locator=g[15],
         )
         for g in geoms
     ]
@@ -193,8 +200,13 @@ def get_region_geometries(code: str) -> list[Geometry]:
 
 @router.get("/coverage", response_model=list[CoverageCell], summary="Region x slot coverage matrix")
 def coverage(body: str | None = None) -> list[CoverageCell]:
-    """present (a source-traced/approximate geometry or validated asset exists),
-    gap (a coverage_gap row, with its reason), or not_yet_curated (neither)."""
+    """Exactly four states per region/slot (F-03/F-04):
+    present (a non-'undefined' geometry, or a validated/validated_with_issues
+    asset of a matching dataset variable, exists for that slot), gap (a
+    coverage_gap row with reason state in not_acquired/unavailable/
+    blocked_on_source), not_applicable (a coverage_gap row with
+    state='not_applicable' -- the slot is not relevant, never counted as a
+    gap), or not_yet_curated (none of the above)."""
     clauses, params = [], {}
     if body:
         clauses.append("b.code = :body"); params["body"] = body
@@ -204,9 +216,27 @@ def coverage(body: str | None = None) -> list[CoverageCell]:
             text(f"SELECT r.id, r.code FROM region r JOIN planetary_body b ON b.id = r.body_id{where} ORDER BY r.code"),
             params,
         ).all()
+        # Only a usable geometry counts as present (F-04): exclude 'undefined'
+        # (Phase 2 never stores one, but this stays defensively correct).
         geometry_present = {
-            row[0] for row in conn.execute(text("SELECT DISTINCT region_id FROM region_geometry"))
+            row[0] for row in conn.execute(
+                text("SELECT DISTINCT region_id FROM region_geometry WHERE geometry_status <> 'undefined'")
+            )
         }
+        # A validated (or validated_with_issues) asset satisfies its dataset's
+        # variable-mapped slot for the asset's own region (F-04).
+        asset_rows = conn.execute(
+            text(
+                "SELECT a.region_id, d.surface_type, a.validation_status FROM data_asset a"
+                " JOIN dataset d ON d.id = a.dataset_id"
+                " WHERE a.region_id IS NOT NULL AND a.validation_status IN ('validated', 'validated_with_issues')"
+            )
+        ).all()
+        asset_present: dict[tuple[int, str], bool] = {}
+        for region_id, surface_type, validation_status in asset_rows:
+            for slot, surface_types in _SLOT_SURFACE_TYPES.items():
+                if surface_type in surface_types:
+                    asset_present[(region_id, slot)] = asset_present.get((region_id, slot), False) or True
         gaps = {
             (row[0], row[1]): (row[2], row[3], row[4])
             for row in conn.execute(text("SELECT region_id, slot, state, reason, resolution_hint FROM coverage_gap"))
@@ -214,12 +244,16 @@ def coverage(body: str | None = None) -> list[CoverageCell]:
     out: list[CoverageCell] = []
     for region_id, code in regions:
         for slot in SLOTS:
-            if slot == "geometry" and region_id in geometry_present:
-                out.append(CoverageCell(region_code=code, slot=slot, status="present"))
-            elif (region_id, slot) in gaps:
-                state, reason, hint = gaps[(region_id, slot)]
+            is_present = (slot == "geometry" and region_id in geometry_present) or asset_present.get((region_id, slot), False)
+            gap = gaps.get((region_id, slot))
+            if gap is not None and gap[0] == "not_applicable":
+                out.append(CoverageCell(region_code=code, slot=slot, status="not_applicable",
+                                         gap=CoverageGapOut(state=gap[0], reason=gap[1], resolution_hint=gap[2])))
+            elif is_present:
+                out.append(CoverageCell(region_code=code, slot=slot, status="present", inconsistent=gap is not None))
+            elif gap is not None:
                 out.append(CoverageCell(region_code=code, slot=slot, status="gap",
-                                         gap=CoverageGapOut(state=state, reason=reason, resolution_hint=hint)))
+                                         gap=CoverageGapOut(state=gap[0], reason=gap[1], resolution_hint=gap[2])))
             else:
                 out.append(CoverageCell(region_code=code, slot=slot, status="not_yet_curated"))
     return out

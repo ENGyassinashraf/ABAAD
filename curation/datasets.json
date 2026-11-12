@@ -1,53 +1,61 @@
 {
   "schema_version": 1,
-  "note": "Product-level metadata only. No files are downloaded in this session; real downloads happen later on the owner's Mac via `make ingest DATASET=<code> CONFIRM=1` (dry run by default). DS-02 (REMA) is deliberately NOT registered yet: its horizontal CRS is not stated on the product page and is blocked on gates V-6/V-7, so inventing a CRS here would violate the 'no source, no geometry/metadata' rule. DS-05b, DS-06 and DS-07 are skipped per OD-3's default (owner may opt in later).",
+  "note": "Product-level metadata only. No files are downloaded in this session; real downloads happen later on the owner's Mac via `make ingest DATASET=<code> CONFIRM=1` (dry run by default). DS-02 (REMA) is deliberately NOT registered yet: its horizontal CRS is not stated on the product page and is blocked on gates V-6/V-7, so inventing a CRS here would violate the 'no source, no geometry/metadata' rule. DS-05b, DS-06 and DS-07 are skipped per OD-3's default (owner may opt in later). Hardening correction F-02: horizontal_crs is no longer forced into an IAU_2015 family by trigger; MOLA (DS-03/DS-04) and LOLA (DS-05) now store horizontal_crs=NULL with horizontal_crs_status='pending' until the real PDS3/PDS4 labels are read (gate V-9) -- a planetary body's default vector CRS is not proof of a specific raster product's CRS. Copernicus GLO-30's EPSG:4326 is stated directly on the product page, so DS-01 is 'verified'. Hardening correction F-08/7.2: source_url is the catalogue/product-description page only; download_url is the verified direct file URL and is NULL for every product here, since none has been confirmed against the provider's real file/tile index -- `make ingest ... CONFIRM=1` refuses to download without one.",
   "datasets": [
     {
-      "code": "DS-01", "provider": "Copernicus Data Space", "product_id": "COP-DEM-GLO-30",
-      "product_name": "Copernicus DEM GLO-30", "product_version": "2021_1",
+      "code": "DS-01", "provider": "Copernicus Data Space", "collection_id": "COP-DEM",
+      "product_id": "COP-DEM-GLO-30", "product_name": "Copernicus DEM GLO-30", "product_version": "2021_1",
       "body": "earth", "variable": "elevation", "surface_type": "dsm",
-      "horizontal_crs": "EPSG:4326", "vertical_reference": "EGM2008 (EPSG:3855)", "value_units": "metre",
+      "horizontal_crs": "EPSG:4326", "horizontal_crs_status": "verified",
+      "vertical_reference": "EGM2008 (EPSG:3855)", "value_units": "metre",
       "nodata_value": null, "native_resolution_value": 1.0, "native_resolution_unit": "arcsecond",
       "temporal_coverage": null, "file_format": "GeoTIFF",
       "licence_summary": "Free worldwide access after Copernicus Data Space registration (per the product page).",
       "access_conditions": "Access route not yet verified from this session (gate V-7); verified on the Mac before any real download.",
-      "source_url": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM"
+      "source_url": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+      "download_url": null
     },
     {
-      "code": "DS-03", "provider": "PDS Geosciences Node", "product_id": "MOLA-MEGDR-32PPD",
-      "product_name": "MOLA MEGDR topography, 32 ppd global", "product_version": "v2.0 (PDS4 bundle, final release May 2003)",
+      "code": "DS-03", "provider": "PDS Geosciences Node", "collection_id": "MEGDR",
+      "product_id": "MOLA-MEGDR-32PPD", "product_name": "MOLA MEGDR topography, 32 ppd global",
+      "product_version": "v2.0 (PDS4 bundle, final release May 2003)",
       "body": "mars", "variable": "topography (planetary radius minus areoid)",
-      "surface_type": "altimetry_grid", "horizontal_crs": "IAU_2015:49900",
+      "surface_type": "altimetry_grid", "horizontal_crs": null, "horizontal_crs_status": "pending",
       "vertical_reference": "height relative to the areoid, metres", "value_units": "metre",
       "nodata_value": null, "native_resolution_value": 32, "native_resolution_unit": "pixel_per_degree",
       "temporal_coverage": null, "file_format": "PDS4/IMG",
       "licence_summary": "Open PDS download, no login.",
-      "access_conditions": "CRS code to be confirmed against the real PDS4/PDS3 label before ingestion (gate V-9); this product provides topography, not a separate areoid file, at this resolution.",
-      "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      "access_conditions": "CRS left pending (hardening F-02): the real PDS4/PDS3 label has not been read (gate V-9), so IAU_2015:49900 (Mars's default vector CRS) is not assumed for this raster product. This product provides topography, not a separate areoid file, at this resolution.",
+      "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html",
+      "download_url": null
     },
     {
-      "code": "DS-04", "provider": "PDS Geosciences Node", "product_id": "MOLA-MEGDR-128PPD",
-      "product_name": "MOLA MEGDR topography, 128 ppd tiles", "product_version": "v2.0 (PDS4 bundle)",
+      "code": "DS-04", "provider": "PDS Geosciences Node", "collection_id": "MEGDR",
+      "product_id": "MOLA-MEGDR-128PPD", "product_name": "MOLA MEGDR topography, 128 ppd tiles",
+      "product_version": "v2.0 (PDS4 bundle)",
       "body": "mars", "variable": "topography (planetary radius minus areoid)",
-      "surface_type": "altimetry_grid", "horizontal_crs": "IAU_2015:49900",
+      "surface_type": "altimetry_grid", "horizontal_crs": null, "horizontal_crs_status": "pending",
       "vertical_reference": "height relative to the areoid, metres", "value_units": "metre",
       "nodata_value": null, "native_resolution_value": 128, "native_resolution_unit": "pixel_per_degree",
       "temporal_coverage": null, "file_format": "PDS4/IMG",
       "licence_summary": "Open PDS download, no login.",
-      "access_conditions": "Tile selection follows geometry: Arabia Terra needs 2 tiles because of the 0 deg wrap (handled explicitly in the registry); Elysium Planitia's tile choice waits on gate V-4. CRS to be confirmed against the label (gate V-9).",
-      "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+      "access_conditions": "CRS left pending (hardening F-02), same reasoning as DS-03 (gate V-9). Tile selection follows geometry: Arabia Terra needs 2 tiles because of the 0 deg wrap (handled explicitly in the registry); Elysium Planitia's tile choice waits on gate V-4.",
+      "source_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html",
+      "download_url": null
     },
     {
-      "code": "DS-05", "provider": "PDS Geosciences Node", "product_id": "LOLA-LDEM-80S-80M",
-      "product_name": "LOLA GDR LDEM_80S_80M", "product_version": "v1",
+      "code": "DS-05", "provider": "PDS Geosciences Node", "collection_id": "LOLA-GDR",
+      "product_id": "LOLA-LDEM-80S-80M", "product_name": "LOLA GDR LDEM_80S_80M", "product_version": "v1",
       "body": "moon", "variable": "elevation", "surface_type": "altimetry_grid",
-      "horizontal_crs": "IAU_2015:30135", "vertical_reference": "height above the 1,737,400 m reference sphere",
+      "horizontal_crs": null, "horizontal_crs_status": "pending",
+      "vertical_reference": "height above the 1,737,400 m reference sphere",
       "value_units": "metre", "nodata_value": null,
       "native_resolution_value": 80, "native_resolution_unit": "metre",
       "temporal_coverage": null, "file_format": "PDS3/IMG+LBL",
       "licence_summary": "Open PDS download, no login.",
-      "access_conditions": "Data-path test only (D-P2-02): one asset with region_id = NULL, never linked to an Earth analog. Polar-stereographic CRS candidate IAU_2015:30135 to be confirmed against the label (gate V-9).",
-      "source_url": "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/"
+      "access_conditions": "Data-path test only (D-P2-02): one asset with region_id = NULL, never linked to an Earth analog. CRS left pending (hardening F-02): the polar-stereographic candidate IAU_2015:30135 has not been confirmed against the real label/SIS (gate V-9).",
+      "source_url": "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/",
+      "download_url": null
     }
   ]
 }
