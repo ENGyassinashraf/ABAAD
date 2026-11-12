@@ -7,8 +7,8 @@ All tests below were run on the target Mac (macOS, Apple Silicon, installed Goog
 
 - **Base branch and SHA:** `phase2/scientific-data-layer` @ `c978e63` (PR #1, open, unmerged). `main` does not contain the comparison app, so the UI work is based on the Phase 2 branch, not on `main`.
 - **Working branch:** `phase-ui/visual-maps-comparison`
-- **Commits:** `9a33006` compare API contract · `228daeb` theme/brand/maps/comparison · the tests/docs/screenshots commit that adds this report (see the PR for the head SHA).
-- **PR URL:** see the PR opened from this branch into `phase2/scientific-data-layer` (stacked on PR #1).
+- **Commits:** `9a33006` compare API contract · `228daeb` theme/brand/maps/comparison · `ba9c610` tests/docs/screenshots, plus the commit recording this PR URL.
+- **PR URL:** https://github.com/ENGyassinashraf/ABAAD/pull/2 (base `phase2/scientific-data-layer`, stacked on PR #1).
 - **Pushed:** yes. **Merged: no.** `main` untouched; no history rewritten; no historical migration edited; no dependency added or upgraded (`package.json` and both lockfiles unchanged).
 
 ## Audit
