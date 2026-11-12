@@ -1,4 +1,4 @@
-# ABAAD |أبعاد
+# ABAAD | أبعاد
 
 **Different Dimensions. One Connection.** — Earth Analog Discovery Platform
 
