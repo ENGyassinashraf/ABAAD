@@ -38,7 +38,7 @@ export function ApiStatus() {
 
   return (
     <div role="status" aria-live="polite" data-testid="api-status" data-state={state.kind === "loaded" ? state.health.status : state.kind}
-      className={`rounded-lg border-2 ${tone} bg-ivory p-4`}>
+      className={`rounded-lg border-2 ${tone} bg-surface p-4`}>
       <p className="font-semibold">{label}</p>
       {state.kind === "loaded" && (
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 text-sm">

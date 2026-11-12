@@ -117,13 +117,13 @@ export function CandidateMap({ candidates, highlighted, onSelect }: Props) {
     <figure className="space-y-2">
       <div className="relative">
         <div ref={ref} data-testid="candidate-map" data-state={state} data-points={features.features.length}
-          className="h-80 w-full rounded-lg border-2 border-olive bg-sand" />
+          className="h-80 w-full overflow-hidden rounded-xl border border-line-strong bg-surface" />
         {state === "offline" && (
-          <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm">{t.explore.mapOffline}</p>
+          <p role="status" data-testid="candidate-map-offline" className="absolute inset-0 flex items-center justify-center rounded-xl bg-bg/85 p-6 text-center text-sm text-fg-2">{t.explore.mapOffline}</p>
         )}
       </div>
-      <figcaption className="flex flex-wrap gap-x-5 gap-y-1 text-xs">
-        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full border-[3px] border-olive bg-olive" />{t.explore.mapLegendTraced}, ranked</span>
+      <figcaption className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-fg-2">
+        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full border-[3px] border-olive-deep bg-olive-deep" />{t.explore.mapLegendTraced}, ranked</span>
         <span className="inline-flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full border-[3px] border-terracotta bg-ochre" />{t.explore.mapLegendTraced}, insufficient evidence</span>
         <span className="inline-flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full border-[3px] border-terracotta" />{t.explore.mapLegendApprox}</span>
         {features.features.length === 0 && <span>{t.explore.mapNoPoints}</span>}

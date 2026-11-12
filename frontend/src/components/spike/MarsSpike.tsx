@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as MlMap, SourceSpecification } from "maplibre-gl";
 import fixture from "../../../public/spike-fixtures/mars_fixture.json";
-import { loadMapLibre } from "@/lib/maplibre";
+import { registerMarsProjection } from "@/lib/marsProjection";
 import { assertCompatibleCrs, CrsMismatchError, MARS_EQC, metresPerPixel } from "@/lib/crs";
 import { formatDistance, niceLength } from "@/lib/lunar";
 import { parseWkt } from "@/lib/wkt";
@@ -14,27 +14,6 @@ const MARKER: Rgb = [255, 0, 255];
 const POLYGON: Rgb = [255, 214, 0];
 const OVERLAY: Rgb = [0, 200, 255];
 const OVERLAY_HEX = "#00c8ff";
-
-let projectionRegistered = false;
-
-async function registerMarsProjection() {
-  const ml = await loadMapLibre();
-  if (!projectionRegistered) {
-    try {
-      ml.addProjection({
-        name: MARS_EQC.id,
-        projection: { forward: MARS_EQC.forward, inverse: MARS_EQC.inverse },
-        tileMatrixSet: { origin: MARS_EQC.tileMatrix.origin, extentAtZoom0: MARS_EQC.tileMatrix.extentAtZoom0 },
-        definition: MARS_EQC.definition,
-      });
-    } catch (e) {
-      if (!/already (exists|registered)/.test(String(e))) throw e;
-    }
-    await ml.importScriptInWorkers(new URL("/maplibre/abaad-crs-worker.js", window.location.origin).href);
-    projectionRegistered = true;
-  }
-  return ml;
-}
 
 /** Add a source only if its declared CRS is compatible with the map CRS (test T4). */
 function addSourceChecked(map: MlMap, mapCrs: string, id: string, source: SourceSpecification, sourceCrs: string) {
@@ -234,13 +213,13 @@ export function MarsSpike({ report }: { report: (id: TestId, s: Status, actual: 
     <figure className="space-y-2">
       <div className="relative">
         <div ref={ref} data-testid="mars-map" className="h-80 w-full rounded border-2 border-olive" />
-        <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-ivory/90 px-2 py-1 text-xs" data-testid="mars-scale">
-          <div style={{ width: `${barM / mpp}px` }} className="h-1.5 border-x-2 border-b-2 border-earth" />
+        <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-surface/90 px-2 py-1 text-xs" data-testid="mars-scale">
+          <div style={{ width: `${barM / mpp}px` }} className="h-1.5 border-x-2 border-b-2 border-fg" />
           {formatDistance(barM)} · Mars radius {MARS_EQC.radiusM.toLocaleString("en")} m
         </div>
       </div>
       {refusal && (
-        <p role="alert" data-testid="crs-refusal" className="rounded border-2 border-terracotta bg-ivory p-2 text-xs">
+        <p role="alert" data-testid="crs-refusal" className="rounded border-2 border-terracotta bg-surface p-2 text-xs">
           T4 refusal: {refusal}
         </p>
       )}

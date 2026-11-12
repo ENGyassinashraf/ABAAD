@@ -33,7 +33,7 @@ export function ReportClient() {
   }, [reference, task]);
 
   if (!reference || !task) return <p>{t.report.missing} <Link className="underline" href="/explore">{t.explore.title}</Link></p>;
-  if (error) return <p role="alert" className="rounded-lg border-2 border-terracotta bg-ivory p-4">{error}</p>;
+  if (error) return <p role="alert" className="rounded-lg border-2 border-terracotta bg-surface p-4">{error}</p>;
   if (!data) return <p>{t.explore.loading}</p>;
 
   const sources = collectSources(data);
@@ -41,10 +41,10 @@ export function ReportClient() {
   const cite = (id: number | undefined) => (id ? `[${sourceNo.get(id)}]` : "");
 
   return (
-    <article className="report space-y-6 bg-ivory p-6 print:bg-white print:p-0" data-testid="report">
+    <article className="report space-y-6 bg-surface p-6 print:bg-white print:p-0" data-testid="report">
       <div className="flex flex-wrap gap-2 print:hidden">
-        <button type="button" onClick={() => window.print()} className="rounded-lg border-2 border-olive bg-olive px-3 py-1.5 text-sm font-semibold text-ivory">{t.report.print}</button>
-        <button type="button" onClick={() => downloadJson(data)} data-testid="download-json" className="rounded-lg border-2 border-olive bg-ivory px-3 py-1.5 text-sm font-semibold">{t.report.json}</button>
+        <button type="button" onClick={() => window.print()} className="rounded-lg border-2 border-olive bg-olive px-3 py-1.5 text-sm font-semibold text-on-accent">{t.report.print}</button>
+        <button type="button" onClick={() => downloadJson(data)} data-testid="download-json" className="rounded-lg border-2 border-olive bg-surface px-3 py-1.5 text-sm font-semibold">{t.report.json}</button>
         <Link href={`/explore?reference=${encodeURIComponent(data.reference.code)}&task=${encodeURIComponent(data.task.code)}`}
           className="rounded-lg border-2 border-olive/50 px-3 py-1.5 text-sm font-semibold no-underline">{t.report.back}</Link>
       </div>
@@ -77,7 +77,7 @@ export function ReportClient() {
         </ul>
         <table className="mt-2 w-full border-collapse text-left text-sm">
           <thead><tr className="border-b-2 border-olive"><th className="py-1">{t.explore.dimension}</th><th className="py-1">{t.explore.weight}</th></tr></thead>
-          <tbody>{data.weights.map((w) => <tr key={w.dimension} className="border-b border-border-soft"><td className="py-1">{w.name}</td><td className="py-1 tabular-nums">{w.weight}</td></tr>)}</tbody>
+          <tbody>{data.weights.map((w) => <tr key={w.dimension} className="border-b border-line"><td className="py-1">{w.name}</td><td className="py-1 tabular-nums">{w.weight}</td></tr>)}</tbody>
         </table>
         {data.weight_rationale && <p className="text-xs">{data.weight_rationale}</p>}
       </section>
@@ -88,16 +88,18 @@ export function ReportClient() {
           <thead>
             <tr className="border-b-2 border-olive">
               <th className="py-1 pr-2">{t.explore.rank}</th><th className="py-1 pr-2">Site</th>
-              <th className="py-1 pr-2">{t.explore.score}</th><th className="py-1">{t.explore.coverage}</th>
+              <th className="py-1 pr-2">{t.explore.score}</th><th className="py-1 pr-2">{t.explore.coverage}</th><th className="py-1">{t.compare.evidenceHeading}</th>
             </tr>
           </thead>
           <tbody>
             {data.candidates.map((c) => (
-              <tr key={c.region.code} className="border-b border-border-soft">
+              <tr key={c.region.code} className="border-b border-line">
                 <td className="py-1 pr-2">{c.rank ?? "—"}</td>
                 <td className="py-1 pr-2">{c.region.name}{c.region.group === "egyptian" ? " (Egypt)" : ""}</td>
                 <td className="py-1 pr-2 tabular-nums">{c.score === null ? t.explore.insufficient : c.score.toFixed(1)}</td>
-                <td className="py-1 tabular-nums">{c.coverage.toFixed(1)} %</td>
+                <td className="py-1 pr-2 tabular-nums">{c.coverage.toFixed(1)} %</td>
+                <td className="py-1 text-xs">{!c.evidence_quality ? t.compare.evidenceNotReported : c.evidence_quality.claim_class ? `Class ${c.evidence_quality.claim_class.code}` : t.compare.evidenceNone}
+                  {c.evidence_quality && Object.keys(c.evidence_quality.source_access).length > 0 && ` · ${Object.entries(c.evidence_quality.source_access).map(([k, n]) => `${n} ${(t.access[k] ?? k).toLowerCase()}`).join(", ")}`}</td>
               </tr>
             ))}
           </tbody>

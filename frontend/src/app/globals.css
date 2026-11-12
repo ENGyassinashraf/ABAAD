@@ -1,36 +1,220 @@
 @import "tailwindcss";
 
 /*
- * ABAAD palette (Phase 0 R1 · 5). Contrast rules:
- *  - Earth Brown, Olive and Terracotta may carry text on Ivory.
- *  - Terracotta on Sand only for large text (4.1:1).
- *  - Ochre (2.6:1) and Border (1.5:1) are decorative only: never text,
- *    never the only edge of a control. Use --color-olive for essential edges.
+ * ABAAD "warm observatory at night" theme (UI/UX spec §3.2).
+ * The brand palette (Phase 0 R1 · 5: Sand, Ivory, Olive, Terracotta, Ochre,
+ * Earth Brown) is the source identity; the dark surfaces are derived from it.
+ * WCAG contrast on --color-surface (#24221C), computed with the WCAG 2 formula:
+ *   fg 13.4 · fg-2 8.7 · muted 5.1 · olive 4.7 · terracotta 4.8 · ochre 7.6 · err 5.3
+ * On --color-raised olive/terracotta drop to 4.3:1: there they are only used
+ * for large text, borders or fills, never small body text.
+ * Text on an olive/ochre/terracotta fill uses --color-on-accent (dark), since
+ * Ivory on the lighter accessible olive is only ~3:1.
+ * Every utility below reads a CSS variable, so printing swaps to a light
+ * palette by redefining the variables (see @media print).
  */
 @theme {
-  --color-sand: #f3ebdd;
+  --color-bg: #1b1a16;
+  --color-bg-deep: #161611;
+  --color-surface: #24221c;
+  --color-raised: #2d2a22;
+  --color-hover: #383329;
+  --color-line: #494235;
+  --color-line-strong: #665a45;
+  --color-fg: #f3ebdd;
+  --color-fg-2: #c9beaa;
+  --color-muted: #9a907f;
+  --color-olive: #84916c;
+  --color-olive-deep: #5e6c4b;
+  --color-terracotta: #c47a58;
+  --color-ochre: #d2ae70;
   --color-ivory: #fcf9f2;
-  --color-olive: #5e6c4b;
-  --color-terracotta: #a95e40;
-  --color-ochre: #be985e;
+  --color-sand: #f3ebdd;
   --color-earth: #3d352d;
-  --color-border-soft: #d8cbb8;
+  --color-on-accent: #1b1a16;
+  --color-ok: #93b07a;
+  --color-warn: #d9a441;
+  --color-err: #d97a68;
+  --color-map-mars: #1f1a15;
+  --color-map-moon: #25241f;
+
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Geeza Pro", "Noto Sans Arabic", sans-serif;
-  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --font-serif: ui-serif, "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-arabic: "Geeza Pro", "Noto Naskh Arabic", "Noto Sans Arabic", "Al Nile", serif;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-reveal: reveal 320ms var(--ease-out-soft) both;
+
+  @keyframes reveal {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
 }
 
 html {
-  background: var(--color-sand);
-  color: var(--color-earth);
+  background: var(--color-bg);
+  color: var(--color-fg);
+  color-scheme: dark;
 }
+
+body {
+  background:
+    radial-gradient(1200px 600px at 85% -10%, rgb(196 122 88 / 0.08), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgb(132 145 108 / 0.07), transparent 60%),
+    var(--color-bg);
+}
+
+a { text-underline-offset: 3px; }
 
 :focus-visible {
-  outline: 3px solid var(--color-olive);
+  outline: 3px solid var(--color-ochre);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
+::selection { background: rgb(210 174 112 / 0.35); }
+
+/* ---- Map markers (HTML, so they are keyboard-focusable buttons) ------- */
+/* The button box is exactly the dot, so MapLibre's centre anchor is the
+   coordinate itself; the label hangs off to the right and never shifts it. */
+.abaad-marker {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-fg);
+}
+.abaad-marker__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  border: 2px solid var(--color-olive);
+  background: rgb(132 145 108 / 0.55);
+  box-shadow: 0 0 0 3px rgb(27 26 22 / 0.6);
+  transition: transform 160ms var(--ease-out-soft), background 160ms, border-color 160ms;
+}
+.abaad-marker[data-precision="approximate_point"] .abaad-marker__dot { background: transparent; border-style: dashed; }
+.abaad-marker__label {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgb(27 26 22 / 0.78);
+  color: var(--color-fg-2);
+  white-space: nowrap;
+}
+.abaad-marker:hover .abaad-marker__dot { transform: scale(1.2); }
+.abaad-marker[data-selected="true"] { z-index: 2; }
+.abaad-marker[data-selected="true"] .abaad-marker__dot {
+  width: 16px;
+  height: 16px;
+  border-color: var(--color-ochre);
+  background: var(--color-ochre);
+  box-shadow: 0 0 0 3px rgb(27 26 22 / 0.75), 0 0 0 6px rgb(210 174 112 / 0.35);
+}
+.abaad-marker[data-selected="true"] .abaad-marker__label {
+  color: var(--color-on-accent);
+  background: var(--color-ochre);
+  font-weight: 600;
+  font-size: 12px;
+}
+.abaad-grid-label {
+  font-size: 10px;
+  color: rgb(201 190 170 / 0.7);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.abaad-marker:focus-visible { outline: 3px solid var(--color-ochre); outline-offset: 4px; }
+
+/* ---- Decorative motion (hero only). Never behind dense text. ----------- */
+
+.abaad-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+}
+.abaad-stars--a {
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, rgb(243 235 221 / 0.55), transparent 60%),
+    radial-gradient(1px 1px at 140px 80px, rgb(243 235 221 / 0.35), transparent 60%),
+    radial-gradient(1.5px 1.5px at 260px 160px, rgb(210 174 112 / 0.5), transparent 60%),
+    radial-gradient(1px 1px at 330px 40px, rgb(243 235 221 / 0.4), transparent 60%),
+    radial-gradient(1px 1px at 90px 210px, rgb(243 235 221 / 0.3), transparent 60%);
+  background-size: 380px 260px;
+  animation: abaad-twinkle 9s ease-in-out infinite alternate, abaad-drift 160s linear infinite;
+}
+.abaad-stars--b {
+  background-image:
+    radial-gradient(1px 1px at 60px 120px, rgb(243 235 221 / 0.35), transparent 60%),
+    radial-gradient(1.5px 1.5px at 210px 20px, rgb(243 235 221 / 0.45), transparent 60%),
+    radial-gradient(1px 1px at 300px 190px, rgb(196 122 88 / 0.45), transparent 60%);
+  background-size: 420px 300px;
+  animation: abaad-twinkle 13s ease-in-out -4s infinite alternate, abaad-drift 240s linear infinite reverse;
+}
+
+.abaad-planet {
+  background:
+    radial-gradient(circle at 32% 30%, rgb(252 249 242 / 0.22), transparent 42%),
+    radial-gradient(circle at 70% 75%, rgb(0 0 0 / 0.55), transparent 55%),
+    linear-gradient(115deg, #b06a49, #8e5139 38%, #a8724f 55%, #6f4030 80%);
+  box-shadow: inset -28px -22px 60px rgb(22 22 17 / 0.85), 0 0 80px rgb(196 122 88 / 0.18);
+}
+.abaad-planet__bands {
+  background:
+    repeating-linear-gradient(172deg, transparent 0 26px, rgb(61 53 45 / 0.14) 26px 40px, transparent 40px 70px),
+    radial-gradient(ellipse 30% 12% at 30% 60%, rgb(210 174 112 / 0.25), transparent),
+    radial-gradient(ellipse 18% 9% at 70% 35%, rgb(61 53 45 / 0.35), transparent);
+  background-size: 200% 100%, 200% 100%, 200% 100%;
+  animation: abaad-spin-surface 90s linear infinite;
+}
+.abaad-orbit { animation: abaad-orbit 48s linear infinite; }
+.abaad-orbit--slow { animation-duration: 80s; animation-direction: reverse; }
+
+@keyframes abaad-twinkle { from { opacity: 0.55; } to { opacity: 1; } }
+@keyframes abaad-drift { from { background-position: 0 0; } to { background-position: -380px 120px; } }
+@keyframes abaad-spin-surface { from { background-position: 0 0, 0 0, 0 0; } to { background-position: -200% 0, -200% 0, -200% 0; } }
+@keyframes abaad-orbit { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+  .abaad-stars, .abaad-planet__bands, .abaad-orbit { animation: none !important; }
+}
+
+/* ---- Print: light palette, no decoration -------------------------------- */
 @media print {
-  html, body { background: #fff; }
+  :root {
+    --color-bg: #ffffff;
+    --color-bg-deep: #ffffff;
+    --color-surface: #ffffff;
+    --color-raised: #f3ebdd;
+    --color-hover: #f3ebdd;
+    --color-line: #d8cbb8;
+    --color-line-strong: #5e6c4b;
+    --color-fg: #3d352d;
+    --color-fg-2: #3d352d;
+    --color-muted: #5b5045;
+    --color-olive: #5e6c4b;
+    --color-terracotta: #a95e40;
+    --color-ochre: #8a6a35;
+    --color-on-accent: #ffffff;
+  }
+  html, body { background: #fff; color-scheme: light; }
   a { color: inherit; }
   .report h2 { break-after: avoid; }
 }
