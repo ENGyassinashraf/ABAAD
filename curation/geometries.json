@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "note": "Phase 2 stores no 'undefined' geometry rows: every region either gets a source-traced/approximate geometry here, or a coverage_gap row with a stated reason. No coordinates are invented.",
+  "geometries": [
+    {
+      "region_code": "CL-ATACAMA-ARADS-SITE",
+      "geometry_role": "point_locator", "encoding": "rfc7946_geojson",
+      "geometry_text": "{\"type\":\"Point\",\"coordinates\":[-70.138175,-24.101642]}",
+      "crs_code": "OGC:CRS84", "coordinate_units": "degree", "latitude_type": "geodetic_wgs84",
+      "longitude_direction": "east", "longitude_domain": "-180..180", "axis_order": "lon_lat",
+      "min_x": -70.138175, "min_y": -24.101642, "max_x": -70.138175, "max_y": -24.101642,
+      "geometry_status": "source_traced", "geometry_method": "published_coordinates",
+      "source_code": "S08", "source_locator": "site coordinates as printed (decimal degrees)",
+      "positional_uncertainty_m": null,
+      "uncertainty_note": "coordinates as printed in the source; no explicit positional uncertainty stated by the source"
+    },
+    {
+      "region_code": "MARS-ARABIA-TERRA",
+      "geometry_role": "outline", "encoding": "ogc_wkt",
+      "geometry_text": "POLYGON((-12 0, 70 0, 70 35, -12 35, -12 0))",
+      "crs_code": "IAU_2015:49900", "coordinate_units": "degree", "latitude_type": "planetocentric",
+      "longitude_direction": "east", "longitude_domain": "-180..180", "axis_order": "lon_lat",
+      "min_x": -12, "min_y": 0, "max_x": 70, "max_y": 35,
+      "geometry_status": "approximate", "geometry_method": "published_bounds",
+      "source_code": "S06", "source_locator": "Section 3 (study extent)",
+      "positional_uncertainty_m": null,
+      "uncertainty_note": "the paper gives only an approximate bounding description (~0N,12W to 35N,70E); latitude type assumed planetocentric from the MOLA-based mapping, not stated explicitly in the paper. MOLA tiles use the 0-360 convention, so this region wraps 348-360 deg and 0-70 deg and needs two 128 ppd tiles; the ingestion registry must handle this explicitly."
+    }
+  ],
+  "gaps": [
+    {"region_code": "EG-WD", "slot": "geometry", "state": "not_acquired",
+     "reason": "No authoritative regional boundary source identified for the Western Desert."},
+    {"region_code": "EG-WD-DAKHLA", "slot": "geometry", "state": "blocked_on_source",
+     "reason": "Awaiting gate V-1: Figure 13 coordinates and Table 1 site/area in Zaki et al. 2018 are owner-reported, not yet independently verified against the full text."},
+    {"region_code": "EG-WD-GILF-KEBIR", "slot": "geometry", "state": "unavailable",
+     "reason": "Paillou et al. 2006 gives only a latitude band (approx. 23d10'N-23d40'N) for the first sub-area; no coordinates were retrieved for the four GPR-surveyed structures."},
+    {"region_code": "CL-ATACAMA", "slot": "geometry", "state": "not_acquired",
+     "reason": "No regional boundary source identified for the Atacama Desert."},
+    {"region_code": "CL-ATACAMA-YUNGAY", "slot": "geometry", "state": "blocked_on_source",
+     "reason": "Awaiting gate V-2: the owner-quoted DMS coordinates do not match Stoker et al. 2023's decimal coordinates for the ARADS site (about 49 m apart after conversion), and that paper treats the two sites as 22.4 km apart. No source printing a Yungay-specific point has been confirmed."},
+    {"region_code": "AQ-MDV", "slot": "geometry", "state": "not_acquired",
+     "reason": "No regional boundary source identified for the McMurdo Dry Valleys."},
+    {"region_code": "AQ-MDV-UNIVERSITY-VALLEY", "slot": "geometry", "state": "blocked_on_source",
+     "reason": "Awaiting gate V-6: the NASA program page gives no coordinates for University Valley."},
+    {"region_code": "IS-HOLUHRAUN", "slot": "geometry", "state": "blocked_on_source",
+     "reason": "Awaiting gate V-3: no lava-flow outline product has been verified yet."},
+    {"region_code": "MARS-NORTH-POLAR-SAND-SEA", "slot": "geometry", "state": "blocked_on_source",
+     "reason": "Awaiting gate V-4: no source-traced extent identified yet."},
+    {"region_code": "MARS-ELYSIUM-PLANITIA", "slot": "geometry", "state": "blocked_on_source",
+     "reason": "Awaiting gate V-4: no source-traced extent identified yet; MOLA tile choice for this region waits on it."}
+  ]
+}
