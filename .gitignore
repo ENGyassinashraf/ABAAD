@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# Node / Next.js
+node_modules/
+frontend/.next/
+frontend/out/
+frontend/next-env.d.ts
+frontend/test-results/
+frontend/playwright-report/
+*.tsbuildinfo
+
+# Local runtime state: databases, backups, logs, PID files
+var/
+.run/
+
+# Scientific data: contents are never committed (see data/README.md).
+# Only the manifest and the README are tracked.
+data/**
+!data/
+!data/README.md
+!data/manifest.json
+!data/*/
+!data/*/.gitkeep
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
