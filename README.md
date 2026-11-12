@@ -137,6 +137,17 @@ side (`curation/comparison.json`). Weights per task carry a written rationale.
 
 API: `GET /api/v1/compare/options`, `GET /api/v1/compare?reference=<code>&task=<code>`.
 
+**Maps.** Mars is drawn on the approved `IAU_2015:49910` equirectangular
+projection (same registration as the Phase 1 spike) with a neutral vector
+context — ABAAD has no validated Mars imagery yet, and the map says so. The
+Moon is the approved static south-polar stereographic panel (`IAU_2015:30135`).
+Only stored geometry is drawn; every location shows its precision
+(source-traced point, approximate outline, no verified geometry…). Each result
+shows **match score, data coverage and evidence quality as three separate
+outputs**. Screenshots and acceptance evidence:
+`docs/reports/UI_UX_VISUAL_UPGRADE_COMPLETION.md`. Re-capture screenshots with
+`ABAAD_SCREENSHOTS=1 pnpm exec playwright test e2e/screenshots.spec.ts` (from `frontend/`).
+
 **Publishing claims** is an owner decision. All eleven curated claims are
 published (owner decision, 2026-11-12); a claim left as `draft` would show only
 its class and limitations. To change one, edit its `"publication_state"` in
