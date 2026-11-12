@@ -31,3 +31,5 @@ data/**
 .DS_Store
 .idea/
 .vscode/
+frontend/public/maplibre/maplibre-gl-worker.mjs
+frontend/.next-e2e/

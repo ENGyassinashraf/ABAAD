@@ -1,0 +1,47 @@
+{
+  "label": "SYNTHETIC TEST FIXTURE \u2014 map feasibility spike only; not scientific data",
+  "synthetic": true,
+  "body": "moon",
+  "crs": "IAU_2015:30135",
+  "crs_name": "Moon (2015) - Sphere / Ocentric / South Polar",
+  "proj": "+proj=stere +lat_0=-90 +lon_0=0 +k=1 +R=1737400",
+  "radius_m": 1737400.0,
+  "reference_points": [
+    {
+      "lon": 0,
+      "lat": -90,
+      "x_m": 0.0,
+      "y_m": 0.0
+    },
+    {
+      "lon": 0,
+      "lat": -80,
+      "x_m": 0.0,
+      "y_m": 304005.6080198808
+    },
+    {
+      "lon": 90,
+      "lat": -85,
+      "x_m": 151713.04441849753,
+      "y_m": 9.289744711800661e-12
+    },
+    {
+      "lon": 45,
+      "lat": -88,
+      "x_m": 42888.04833040431,
+      "y_m": 42888.048330404315
+    },
+    {
+      "lon": 180,
+      "lat": -82,
+      "x_m": 2.97566744184382e-11,
+      "y_m": -242981.68614130994
+    },
+    {
+      "lon": -60,
+      "lat": -86,
+      "x_m": -105085.85195625051,
+      "y_m": 60671.34491496241
+    }
+  ]
+}

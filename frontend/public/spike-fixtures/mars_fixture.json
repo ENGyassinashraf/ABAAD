@@ -1,0 +1,84 @@
+{
+  "label": "SYNTHETIC TEST FIXTURE \u2014 map feasibility spike only; not scientific data",
+  "synthetic": true,
+  "body": "mars",
+  "geometry": {
+    "crs": "IAU_2015:49900",
+    "crs_name": "Mars (2015) - Sphere / Ocentric",
+    "encoding": "ogc_wkt",
+    "coordinate_units": "degree",
+    "latitude_type": "planetocentric",
+    "longitude_direction": "east",
+    "longitude_domain": "-180..180",
+    "axis_order": "lon_lat",
+    "wkt": "POLYGON ((40 25, 50 25, 50 35, 40 35, 40 25))"
+  },
+  "control_points": [
+    {
+      "id": "CP-A",
+      "lon": 0.0,
+      "lat": 0.0,
+      "expected_x_m": 0.0,
+      "expected_y_m": 0.0
+    },
+    {
+      "id": "CP-B",
+      "lon": 45.0,
+      "lat": 30.0,
+      "expected_x_m": 2667361.3885487798,
+      "expected_y_m": 1778240.9256991865
+    },
+    {
+      "id": "CP-C",
+      "lon": -120.0,
+      "lat": -60.0,
+      "expected_x_m": -7112963.702796746,
+      "expected_y_m": -3556481.851398373
+    }
+  ],
+  "display": {
+    "crs": "IAU_2015:49910",
+    "crs_name": "Mars (2015) - Sphere / Ocentric / Equirectangular, clon = 0",
+    "proj": "+proj=eqc +lat_ts=0 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +R=3396190 +units=m",
+    "radius_m": 3396190.0
+  },
+  "tile_matrix": {
+    "id": "ABAAD-MarsEqcQuad",
+    "origin": [
+      -10669445.554195119,
+      10669445.554195119
+    ],
+    "extentAtZoom0": 21338891.108390238,
+    "tileSize": 512,
+    "minzoom": 0,
+    "maxzoom": 3,
+    "url": "/spike-fixtures/mars-eqc/{z}/{x}/{y}.png"
+  },
+  "colors": {
+    "background": [
+      232,
+      217,
+      189,
+      255
+    ],
+    "graticule": [
+      110,
+      96,
+      70,
+      255
+    ],
+    "polygon": [
+      255,
+      214,
+      0,
+      255
+    ],
+    "marker": [
+      255,
+      0,
+      255,
+      255
+    ]
+  },
+  "alignment_tolerance_source_px": 1.0
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "description": "Every scientific data file stored under data/ must be listed here with its SHA-256. The files themselves are never committed to Git. Checked by `make verify-data`.",
+  "entry_template": {
+    "path": "raw/<file name relative to data/>",
+    "sha256": "<64 hex characters>",
+    "bytes": 0,
+    "dataset": "<dataset name>",
+    "source_url": "<official URL the file was downloaded from>",
+    "licence": "<licence or terms>",
+    "acquired_at": "<YYYY-MM-DD>"
+  },
+  "files": []
+}
