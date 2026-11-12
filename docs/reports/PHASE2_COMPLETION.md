@@ -73,10 +73,14 @@ private/loopback/link-local address rejected and an HTML/XML response
 rejected outright. `ABAAD_ALLOW_REAL_DOWNLOADS=1` remains a hard session
 gate on top of all of this.
 
-**CI** (`.github/workflows/ci.yml`): a minimal PR workflow added for
-backend tests and frontend typecheck/unit tests/build. **This workflow has
-not been executed** — GitHub Actions cannot be run from this session, so
-it is added but unverified.
+**CI (F-15): not added to this push.** A minimal PR workflow (backend
+tests + frontend typecheck/unit/build) was written and briefly committed,
+but pushing it needs a `workflow`-scoped GitHub token; the push was
+blocked ("refusing an OAuth App to create or update workflow... without
+`workflow` scope") and a re-auth device flow was started but not completed
+in time, so the file was removed again to unblock the rest of this push.
+It can be re-added once the token has that scope, or added directly via
+the GitHub web UI.
 
 ## 2. Tests — exact results and exit codes
 
@@ -148,7 +152,8 @@ it is added but unverified.
   `download_url` is `null` for all 4 registered products, so a real
   download is structurally impossible right now — this is intentional
   (F-08), not an oversight.
-- The CI workflow (`.github/workflows/ci.yml`) has never actually run.
+- The CI workflow (F-15) was removed from this push (see §1); it needs a
+  `workflow`-scoped token or the GitHub web UI to add.
 - The map-spike e2e failures (§2) need investigation of the MapLibre
   worker bundle in the production build/serve path; this was not touched.
 
@@ -182,10 +187,11 @@ latest commit. **Not merged.** `main` is untouched.
    unresolved, and the MapLibre worker-loading symptom is new information
    worth the owner's attention.
 2. Migration `0005`'s downgrade-with-real-data limitation (§3/§4).
-3. The CI workflow is unexecuted/unverified.
+3. The CI workflow (F-15) isn't in this push (token scope; see §1/§4).
 
 No scientific-integrity or security blocker is open: every evidence-class,
 CRS, coverage, and provenance finding from the hardening spec (F-01…F-11)
 is fixed and tested; F-12 is fixed and tested; F-13 is partially addressed
 (test isolation applied, underlying map failure not fixed); F-14 (this
-report) is now committed; F-15 (CI) is added but unverified.
+report) is now committed; F-15 (CI) is written but not pushed (token
+scope).
