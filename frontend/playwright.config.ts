@@ -15,6 +15,9 @@ export default defineConfig({
     baseURL: "http://localhost:3100",
     ...devices["Desktop Chrome"],
     channel: "chrome",
+    // Software WebGL for the Mission Lab 3D viewer in headless Chrome (the
+    // tests do not depend on it: the viewer reports "unavailable" if absent).
+    launchOptions: { args: ["--enable-unsafe-swiftshader"] },
     viewport: { width: 1280, height: 900 },
     deviceScaleFactor: 1,
     screenshot: "only-on-failure",

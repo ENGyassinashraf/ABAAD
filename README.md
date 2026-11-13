@@ -59,6 +59,13 @@ make test-e2e       # Playwright in Google Chrome on ports 3100/8100 (own DB)
 
 The end-to-end tests build the frontend and start their own servers on ports 3100 and 8100 with a fresh database, so they can run while `make dev` is running. Test **T1** needs internet access to `tiles.openfreemap.org`.
 
+## Mission Lab (MVP)
+
+`http://localhost:3000/mission-lab` — a lunar rover training-scenario simulator with route planning,
+3D playback, communication-blackout and navigation-degradation events, a baseline/stress/mitigated
+comparison and a printable Mission Operations Report. All terrain and results are
+**synthetic / demonstration**. See [docs/MISSION_LAB.md](docs/MISSION_LAB.md).
+
 ## Data, backup and restore
 
 ```bash

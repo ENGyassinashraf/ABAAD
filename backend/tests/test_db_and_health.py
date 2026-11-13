@@ -53,7 +53,7 @@ def test_health_ok_on_migrated_db(monkeypatch, migrated_db: Path):
     assert body["database"]["connected"] is True
     assert body["database"]["foreign_keys"] is True
     assert body["database"]["journal_mode"] == "wal"
-    assert body["database"]["schema_revision"] == health_mod.expected_schema_revision() == "0006"
+    assert body["database"]["schema_revision"] == health_mod.expected_schema_revision() == "0007"
     assert body["database"]["schema_up_to_date"] is True
 
 

@@ -7,6 +7,7 @@ import { messages as t } from "@/i18n/en";
 const LINKS = [
   { href: "/", label: t.nav.home, icon: "M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" },
   { href: "/explore", label: t.nav.explore, icon: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm4 5-2.5 5.5L8 16l2.5-5.5z" },
+  { href: "/mission-lab", label: t.nav.missionLab, icon: "M12 2 4 7v10l8 5 8-5V7zm0 4.3 4.5 2.8v5.8L12 17.7l-4.5-2.8V9.1z" },
   { href: "/sites", label: t.nav.sites, icon: "M12 21s-6-5.3-6-10a6 6 0 1 1 12 0c0 4.7-6 10-6 10Zm0-8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" },
 ];
 

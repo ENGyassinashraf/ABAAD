@@ -77,8 +77,8 @@ def test_backup_and_restore_round_trip(tmp_path, monkeypatch):
     db = _migrated(tmp_path / "live.sqlite")
     backups = tmp_path / "backups"
     path = backup_mod.backup(db, backups)
-    # 20 real tables (8 Phase 1 + 9 Phase 2 + 3 comparison) + alembic_version = 21, at head revision 0006.
-    assert path.exists() and backup_mod.describe(path) == {"integrity": "ok", "tables": 21, "revision": "0006"}
+    # 25 real tables (8 Phase 1 + 9 Phase 2 + 3 comparison + 5 Mission Lab) + alembic_version = 26, at head revision 0007.
+    assert path.exists() and backup_mod.describe(path) == {"integrity": "ok", "tables": 26, "revision": "0007"}
 
     with sqlite3.connect(db) as c:  # damage the live data after the backup
         c.execute("DELETE FROM planetary_body")
