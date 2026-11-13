@@ -13,7 +13,7 @@ test("home page shows the temporary wordmark, slogan and a live API/database sta
   // Frontend -> Next.js proxy -> FastAPI /api/v1/health -> SQLite
   const status = page.getByTestId("api-status");
   await expect(status).toHaveAttribute("data-state", "ok");
-  await expect(page.getByTestId("schema-revision")).toHaveText("0002");
+  await expect(page.getByTestId("schema-revision")).toHaveText("0003");
 
   expect(consoleErrors).toEqual([]);
 });

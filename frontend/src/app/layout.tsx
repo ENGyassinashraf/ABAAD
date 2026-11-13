@@ -24,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav aria-label={t.nav.label}>
               <ul className="flex gap-4 text-sm font-medium">
                 <li><Link className="underline-offset-4 hover:underline" href="/">{t.nav.home}</Link></li>
+                <li><Link className="underline-offset-4 hover:underline" href="/mission-lab">{t.nav.missionLab}</Link></li>
                 <li><Link className="underline-offset-4 hover:underline" href="/dev/map-spike">{t.nav.mapSpike}</Link></li>
               </ul>
             </nav>
