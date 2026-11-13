@@ -2,12 +2,35 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { GeoJSONSource, Map as MlMap } from "maplibre-gl";
+import type { GeoJSONSource, Map as MlMap, Marker, StyleSpecification } from "maplibre-gl";
 import type { Candidate } from "@/lib/api";
 import { loadMapLibre } from "@/lib/maplibre";
 import { messages as t } from "@/i18n/en";
 
-const STYLE = "https://tiles.openfreemap.org/styles/liberty";
+/**
+ * Basemaps from NASA GIBS (the imagery service behind NASA Worldview), one of the
+ * open-data resources of the Space Apps 2026 analog challenge. Raster tiles only,
+ * so the map needs no vector-tile or font host.
+ */
+const GIBS = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best";
+const recentDate = () => new Date(Date.now() - 3 * 86_400_000).toISOString().slice(0, 10);
+export const BASEMAPS = {
+  bluemarble: { label: "NASA Blue Marble (shaded relief)", url: () => `${GIBS}/BlueMarble_ShadedRelief_Bathymetry/default/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg`, maxzoom: 8 },
+  modis: { label: "MODIS Terra true colour", url: () => `${GIBS}/MODIS_Terra_CorrectedReflectance_TrueColor/default/${recentDate()}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`, maxzoom: 9 },
+} as const;
+type BasemapKey = keyof typeof BASEMAPS;
+
+function gibsStyle(key: BasemapKey): StyleSpecification {
+  const b = BASEMAPS[key];
+  return {
+    version: 8,
+    sources: {
+      gibs: { type: "raster", tiles: [b.url()], tileSize: 256, maxzoom: b.maxzoom,
+        attribution: "Imagery: NASA GIBS / Worldview" + (key === "modis" ? ` · ${recentDate()}` : "") },
+    },
+    layers: [{ id: "background", type: "background", paint: { "background-color": "#161611" } }, { id: "gibs", type: "raster", source: "gibs" }],
+  };
+}
 
 type Props = { candidates: Candidate[]; highlighted: string | null; onSelect: (code: string) => void };
 
@@ -20,6 +43,8 @@ export function CandidateMap({ candidates, highlighted, onSelect }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "offline">("loading");
+  const [basemap, setBasemap] = useState<BasemapKey>("bluemarble");
+  const labels = useRef<Marker[]>([]);
 
   const features = useMemo(
     () => ({
@@ -49,7 +74,7 @@ export function CandidateMap({ candidates, highlighted, onSelect }: Props) {
     (async () => {
       const ml = await loadMapLibre();
       if (!ref.current || cancelled) return;
-      map = new ml.Map({ container: ref.current, style: STYLE, center: [10, 15], zoom: 1.6, attributionControl: { compact: true } });
+      map = new ml.Map({ container: ref.current, style: gibsStyle("bluemarble"), center: [10, 15], zoom: 1.6, attributionControl: { compact: true } });
       map.addControl(new ml.NavigationControl({ showCompass: false }), "top-right");
       map.on("error", () => {
         if (!map?.isStyleLoaded()) setState("offline");
@@ -66,11 +91,6 @@ export function CandidateMap({ candidates, highlighted, onSelect }: Props) {
             "circle-stroke-color": ["case", ["==", ["get", "ranked"], 1], "#5e6c4b", "#a95e40"],
             "circle-stroke-width": 3,
           },
-        });
-        map.addLayer({
-          id: "cand-label", type: "symbol", source: "candidates",
-          layout: { "text-field": ["get", "label"], "text-size": 12, "text-offset": [0, 1.4], "text-anchor": "top", "text-font": ["Noto Sans Regular"] },
-          paint: { "text-color": "#3d352d", "text-halo-color": "#fcf9f2", "text-halo-width": 1.5 },
         });
         map.on("click", "cand-circle", (e) => {
           const code = e.features?.[0]?.properties?.code;
@@ -97,6 +117,16 @@ export function CandidateMap({ candidates, highlighted, onSelect }: Props) {
     const map = mapRef.current;
     if (!map || state !== "ready") return;
     (map.getSource("candidates") as GeoJSONSource | undefined)?.setData(features);
+    // Labels as HTML markers (no font server needed)
+    labels.current.forEach((m) => m.remove());
+    void loadMapLibre().then((ml) => {
+      labels.current = features.features.map((f) => {
+        const el = document.createElement("div");
+        el.textContent = f.properties.label;
+        el.className = "pointer-events-none mt-5 whitespace-nowrap rounded bg-bg/80 px-1.5 py-0.5 text-[11px] font-semibold text-fg shadow";
+        return new ml.Marker({ element: el, anchor: "top" }).setLngLat(f.geometry.coordinates as [number, number]).addTo(map);
+      });
+    });
     const pts = features.features.map((f) => f.geometry.coordinates);
     if (pts.length === 1) map.easeTo({ center: pts[0] as [number, number], zoom: 4 });
     else if (pts.length > 1) {
@@ -105,6 +135,14 @@ export function CandidateMap({ candidates, highlighted, onSelect }: Props) {
       map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], { padding: 60, maxZoom: 5, duration: 600 });
     }
   }, [features, state]);
+
+  // Switch the NASA GIBS basemap without rebuilding the map.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || state !== "ready") return;
+    const src = map.getSource("gibs") as unknown as { setTiles?: (t: string[]) => void } | undefined;
+    src?.setTiles?.([BASEMAPS[basemap].url()]);
+  }, [basemap, state]);
 
   // Highlight follows hover/selection in the list.
   useEffect(() => {
@@ -121,6 +159,14 @@ export function CandidateMap({ candidates, highlighted, onSelect }: Props) {
         {state === "offline" && (
           <p role="status" data-testid="candidate-map-offline" className="absolute inset-0 flex items-center justify-center rounded-xl bg-bg/85 p-6 text-center text-sm text-fg-2">{t.explore.mapOffline}</p>
         )}
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-xs text-fg-2">
+        <label htmlFor="basemap">Basemap</label>
+        <select id="basemap" data-testid="basemap" value={basemap} onChange={(e) => setBasemap(e.target.value as BasemapKey)}
+          className="rounded border border-line-strong bg-bg-deep px-1.5 py-0.5 text-fg">
+          {(Object.keys(BASEMAPS) as BasemapKey[]).map((k) => <option key={k} value={k}>{BASEMAPS[k].label}</option>)}
+        </select>
+        <span className="text-muted">NASA GIBS (Worldview) · context imagery, not analysis data</span>
       </div>
       <figcaption className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-fg-2">
         <span className="inline-flex items-center gap-1.5"><span className="inline-block h-3 w-3 rounded-full border-[3px] border-olive-deep bg-olive-deep" />{t.explore.mapLegendTraced}, ranked</span>
