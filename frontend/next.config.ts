@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   // the directory used by `make dev`.
   distDir: process.env.ABAAD_NEXT_DIST_DIR ?? ".next",
   reactStrictMode: true,
+  // Hide the Next.js dev-tools badge: it overlapped the sidebar footer (and was the
+  // "1 Issue" indicator noted in Phase 1). Errors still appear in the terminal/console.
+  devIndicators: false,
   // Do not generate AGENTS.md / agent rule files in the project.
   agentRules: false,
   async rewrites() {

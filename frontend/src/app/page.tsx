@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ApiStatus } from "@/components/ApiStatus";
 import { HeroArt } from "@/components/home/HeroArt";
+import { LiveDashboard } from "@/components/home/LiveDashboard";
 import { Wordmark } from "@/components/Wordmark";
 import { messages as t } from "@/i18n/en";
 
@@ -41,6 +42,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      <LiveDashboard />
+
       <p className="max-w-3xl rounded-xl border border-terracotta/60 bg-surface p-4 text-sm text-fg-2" data-testid="phase-notice">
         {t.home.phaseNotice}
       </p>
@@ -69,7 +72,7 @@ export default function HomePage() {
 
       <section aria-labelledby="modules-heading" className="space-y-5">
         <h2 id="modules-heading" className="font-serif text-2xl font-semibold">{t.home.modulesHeading}</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {t.home.modules.map(([title, body, href]) => (
             <Link key={title} href={href} className="space-y-2 rounded-xl border border-line bg-surface p-4 no-underline transition-colors duration-150 hover:border-line-strong hover:bg-raised">
               <p className="font-semibold text-fg">{title}</p>
