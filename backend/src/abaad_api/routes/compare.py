@@ -34,6 +34,7 @@ METHOD = {
     "missing_data": "A dimension without a curated assessment is unknown -- it is excluded, never counted as zero.",
     "ranking": f"Only candidates with coverage >= {MIN_COVERAGE:g}% get a score and a rank; others are 'insufficient evidence'.",
     "rubric": {k: v for k, v in RUBRIC.items()},
+    "min_coverage": MIN_COVERAGE,
     "not_a_similarity_percentage": (
         "This is a task-specific match score for one research task and one reference region, with its coverage shown "
         "beside it. It is not a percentage similarity between Earth and Mars or the Moon."
@@ -102,6 +103,16 @@ class GeometryOut(BaseModel):
     source_locator: str | None
 
 
+class OutlineOut(BaseModel):
+    """A stored outline (polygon ring, lon/lat in the region's CRS). Only
+    shown with its status: an approximate outline is never a boundary."""
+    rings: list[list[list[float]]]
+    crs_code: str
+    geometry_status: str
+    uncertainty_note: str | None
+    source: SourceRef | None
+
+
 class RegionOut(BaseModel):
     code: str
     name: str
@@ -113,7 +124,18 @@ class RegionOut(BaseModel):
     origin_status: str
     group: str  # 'egyptian' | 'global' | 'reference'
     geometry: GeometryOut | None
+    outline: OutlineOut | None = None
     geometry_gap: str | None
+
+
+class EvidenceQualityOut(BaseModel):
+    """Provenance summary, kept separate from score and coverage. It only
+    restates stored categories (claim evidence class, source access level,
+    evidence basis); it is not a number and is never combined with the score."""
+    claim_class: dict | None  # best visible site-task claim class {code, label}
+    assessed_dimensions: int
+    source_access: dict[str, int]  # distinct cited sources per access level
+    evidence_basis: dict[str, int]  # assessed dimensions per evidence basis
 
 
 class CandidateOut(BaseModel):
@@ -124,6 +146,7 @@ class CandidateOut(BaseModel):
     rank: int | None
     dimensions: list[DimensionOut]
     claims: list[ClaimSummary]
+    evidence_quality: EvidenceQualityOut
 
 
 class TaskOut(BaseModel):
@@ -195,6 +218,46 @@ def _geometry(conn: Connection, region_id: int) -> GeometryOut | None:
     )
 
 
+def _outline(conn: Connection, region_id: int) -> OutlineOut | None:
+    g = conn.execute(
+        text(
+            "SELECT geometry_text, crs_code, geometry_status, uncertainty_note, source_publication_id FROM region_geometry"
+            " WHERE region_id = :id AND geometry_role = 'outline' AND encoding = 'ogc_wkt'"
+            " AND geometry_status <> 'undefined' AND geometry_text LIKE 'POLYGON%'"
+        ),
+        {"id": region_id},
+    ).first()
+    if g is None:
+        return None
+    body = g[0].split("(", 1)[1].rsplit(")", 1)[0]  # "(x y, ...), (...)"
+    rings = []
+    for ring in body.split("),"):
+        pts = ring.strip().strip("()").split(",")
+        rings.append([[float(v) for v in p.split()] for p in pts])
+    return OutlineOut(rings=rings, crs_code=g[1], geometry_status=g[2], uncertainty_note=g[3], source=_source(conn, g[4]))
+
+
+def _evidence_quality(dims: list, claims: list) -> EvidenceQualityOut:
+    assessed = [d for d in dims if d.similarity is not None]
+    access: dict[str, int] = {}
+    seen: set[int] = set()
+    for d in assessed:
+        for s in (d.analog_source, d.reference_source):
+            if s is not None and s.id not in seen:
+                seen.add(s.id)
+                access[s.source_access] = access.get(s.source_access, 0) + 1
+    basis: dict[str, int] = {}
+    for d in assessed:
+        if d.evidence_basis:
+            basis[d.evidence_basis] = basis.get(d.evidence_basis, 0) + 1
+    visible = sorted((c.claim_evidence_class["code"] for c in claims if not c.unpublished))
+    best = visible[0] if visible else None  # 'A' < 'B' < 'C'
+    return EvidenceQualityOut(
+        claim_class={"code": best, "label": CLASS_LABELS[best]} if best else None,
+        assessed_dimensions=len(assessed), source_access=access, evidence_basis=basis,
+    )
+
+
 _REGION_SQL = (
     "SELECT r.id, r.code, r.name, b.code, r.region_level, p.code, r.country_code, r.site_type, r.origin_status, r.region_role"
     " FROM region r JOIN planetary_body b ON b.id = r.body_id LEFT JOIN region p ON p.id = r.parent_region_id"
@@ -209,7 +272,8 @@ def _region(conn: Connection, row) -> RegionOut:
     ).scalar()
     return RegionOut(
         code=row[1], name=row[2], body=row[3], region_level=row[4], parent_code=row[5], country_code=row[6],
-        site_type=row[7], origin_status=row[8], group=group, geometry=_geometry(conn, row[0]), geometry_gap=gap,
+        site_type=row[7], origin_status=row[8], group=group, geometry=_geometry(conn, row[0]), outline=_outline(conn, row[0]),
+        geometry_gap=gap,
     )
 
 
@@ -350,9 +414,10 @@ def compare(
         for code in sorted(payloads, key=sort_key):
             row, dims = payloads[code]
             r = results[code]
+            claims = _claims(conn, row[0], t[0], ref_row[0], ref_body_id)
             candidates.append(CandidateOut(
                 region=_region(conn, row), status=r.status, score=r.score, coverage=r.coverage, rank=ranks[code],
-                dimensions=dims, claims=_claims(conn, row[0], t[0], ref_row[0], ref_body_id),
+                dimensions=dims, claims=claims, evidence_quality=_evidence_quality(dims, claims),
             ))
 
         return CompareResponse(

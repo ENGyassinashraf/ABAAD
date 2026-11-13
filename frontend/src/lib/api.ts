@@ -23,6 +23,14 @@ export type Geometry = {
   source_locator: string | null;
 };
 
+export type Outline = {
+  rings: number[][][];
+  crs_code: string;
+  geometry_status: string; // source_traced | approximate
+  uncertainty_note: string | null;
+  source: SourceRef | null;
+};
+
 export type Region = {
   code: string;
   name: string;
@@ -34,6 +42,7 @@ export type Region = {
   origin_status: string;
   group: "egyptian" | "global" | "reference";
   geometry: Geometry | null;
+  outline?: Outline | null;
   geometry_gap: string | null;
 };
 
@@ -69,14 +78,27 @@ export type ClaimSummary = {
   differences: string | null;
 };
 
+export type EvidenceQuality = {
+  claim_class: { code: string; label: string } | null;
+  assessed_dimensions: number;
+  source_access: Record<string, number>;
+  evidence_basis: Record<string, number>;
+};
+
+/** Backend result states. "excluded"/"not_available" are not produced by the
+ * current engine; the UI handles them so a future state is never shown as ranked. */
+export type CandidateStatus = "ranked" | "insufficient_evidence" | "excluded" | "not_available";
+
 export type Candidate = {
   region: Region;
-  status: "ranked" | "insufficient_evidence";
+  status: CandidateStatus;
   score: number | null;
   coverage: number;
   rank: number | null;
   dimensions: Dimension[];
   claims: ClaimSummary[];
+  /** Absent from pre-UI-upgrade API builds: rendered as "not reported". */
+  evidence_quality?: EvidenceQuality;
 };
 
 export type CompareResponse = {
@@ -90,6 +112,7 @@ export type CompareResponse = {
     missing_data: string;
     ranking: string;
     rubric: Record<string, number>;
+    min_coverage?: number;
     not_a_similarity_percentage: string;
   };
   candidates: Candidate[];
