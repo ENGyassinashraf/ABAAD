@@ -3,7 +3,7 @@ SHELL := /bin/bash
 UV := uv run --frozen
 
 .PHONY: help install migrate dev stop status test test-backend test-frontend test-e2e \
-        backup restore verify-data doctor spike-fixtures
+        backup restore verify-data doctor spike-fixtures load-curation ingest-list ingest manifest
 
 help: ## Show this help
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS=":.*?## "}; {printf "  make %-15s %s\n", $$1, $$2}'
@@ -45,8 +45,21 @@ restore: ## Restore a backup: make restore FILE=var/backups/abaad-....sqlite
 	@test -n "$(FILE)" || { echo "Usage: make restore FILE=var/backups/<file>.sqlite"; exit 1; }
 	$(UV) python scripts/backup.py restore "$(FILE)"
 
-verify-data: ## Check data/manifest.json against the files in data/
+verify-data: ## Check data/manifest.json against data/, and (Phase 2) the curated database
 	$(UV) python scripts/verify_data.py
+
+load-curation: ## Load curation/*.json (sources, regions, geometries, claims, datasets) into the database
+	$(UV) python scripts/load_curation.py
+
+ingest-list: ## List planned Phase 2 dataset products and their status. No network.
+	$(UV) python scripts/ingest/registry.py list
+
+ingest: ## Dry-run (default) or download a dataset: make ingest DATASET=DS-05 [CONFIRM=1]
+	@test -n "$(DATASET)" || { echo "Usage: make ingest DATASET=<code> [CONFIRM=1] [ALLOW_LARGE=1]"; exit 1; }
+	$(UV) python scripts/ingest/fetch.py "$(DATASET)" $(if $(CONFIRM),--confirm,) $(if $(ALLOW_LARGE),--allow-large,)
+
+manifest: ## Rewrite data/manifest.json from the database
+	$(UV) python scripts/ingest/registry.py manifest
 
 doctor: ## Environment report (OS, CPU, Python, SQLite, Node, GIS imports)
 	$(UV) python scripts/doctor.py

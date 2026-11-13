@@ -48,7 +48,7 @@ MissionScenario (mission_scenario) ──< MissionRun (mission_run: config snaps
 ## Launch and demonstrate
 
 ```bash
-make migrate   # applies revision 0003 (Mission Lab tables)
+make migrate   # applies revisions up to 0007 (Mission Lab tables)
 make dev       # backend :8000, frontend :3000
 open http://localhost:3000/mission-lab
 ```
@@ -73,7 +73,7 @@ Demo sequence (about 5 minutes):
 
 ## Known limitations
 
-- Synthetic terrain only. No LOLA or Earth DEM is ingested; the Phase 2 data layer is not implemented yet.
+- Synthetic terrain only. The Mission Lab does not yet use any ingested LOLA or Earth DEM.
 - The report is print-ready HTML (decision D4). A PDF is produced with the browser's print dialog.
 - The 3D view needs WebGL. Without it the viewer says so; the map, telemetry and timeline still work.
-- Migration numbering: this feature uses 0003. The draft Phase 2 migrations move to 0004/0005.
+- Migration numbering: Mission Lab is revision 0007, after the Phase 2 migrations 0003–0006.

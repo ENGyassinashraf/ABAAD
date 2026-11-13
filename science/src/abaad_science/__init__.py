@@ -1,11 +1,31 @@
-"""ABAAD science engine — Phase 1 placeholder.
+"""ABAAD science engine.
 
 This package must stay free of web-framework, database and UI imports so
 that the scientific logic can be tested and reproduced on its own.
-No scoring, similarity, coverage or evidence grading exists yet (Phase 3).
 """
 
-__version__ = "0.1.0"
+from .scoring import (
+    DEFAULT_MIN_COVERAGE,
+    RUBRIC,
+    DimensionResult,
+    ScoreResult,
+    rank_candidates,
+    score_candidate,
+    similarity_from_rubric,
+)
 
-#: Methodology version the engine will implement (Revision 1 planning baseline).
-METHODOLOGY_BASELINE = "Phase 0 Revision 1"
+__version__ = "0.2.0"
+
+#: Methodology the engine implements (Project & Scientific Guide §06).
+METHODOLOGY_BASELINE = "ABAAD Project & Scientific Guide §06 (task-weighted score + separate coverage)"
+
+__all__ = [
+    "DEFAULT_MIN_COVERAGE",
+    "METHODOLOGY_BASELINE",
+    "RUBRIC",
+    "DimensionResult",
+    "ScoreResult",
+    "rank_candidates",
+    "score_candidate",
+    "similarity_from_rubric",
+]

@@ -8,7 +8,7 @@ const LINK_LABEL: Record<string, string> = {
 };
 
 export function Badge({ tone, children, testId }: { tone: "ok" | "warn" | "bad" | "info"; children: React.ReactNode; testId?: string }) {
-  const c = { ok: "bg-olive text-ivory", warn: "bg-ochre text-earth", bad: "bg-terracotta text-ivory", info: "bg-earth text-ivory" }[tone];
+  const c = { ok: "bg-olive text-on-accent", warn: "bg-ochre text-earth", bad: "bg-terracotta text-on-accent", info: "bg-raised text-fg" }[tone];
   return <span data-testid={testId} className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${c}`}>{children}</span>;
 }
 
@@ -20,8 +20,8 @@ export function statusTone(s: string): "ok" | "warn" | "bad" {
 
 function Row({ k, v, testId }: { k: string; v: React.ReactNode; testId?: string }) {
   return (
-    <div className="flex justify-between gap-3 border-b border-border-soft py-1 text-sm">
-      <dt className="text-earth/80">{k}</dt>
+    <div className="flex justify-between gap-3 border-b border-line py-1 text-sm">
+      <dt className="text-muted">{k}</dt>
       <dd className="text-right font-medium" data-testid={testId}>{v}</dd>
     </div>
   );
@@ -32,7 +32,7 @@ export function Telemetry({ frame, run, t }: { frame: Frame | null; run: Run; t:
   const s = run.summary;
   const losTone = frame.los === "LINE_OF_SIGHT" ? "ok" : frame.los === "BLOCKED_BY_TERRAIN" ? "bad" : "warn";
   return (
-    <section aria-labelledby="tel-h" className="rounded-lg border-2 border-olive bg-ivory p-3">
+    <section aria-labelledby="tel-h" className="rounded-lg border-2 border-olive bg-surface p-3">
       <h3 id="tel-h" className="mb-2 text-sm font-bold uppercase tracking-wider text-olive">Telemetry (simulated)</h3>
       <dl>
         <Row k="Sim time" v={formatSimTime(t)} testId="tel-time" />
@@ -57,8 +57,8 @@ export function Telemetry({ frame, run, t }: { frame: Frame | null; run: Run; t:
 
 export function PhaseTracker({ phases, states, nextAction }: { phases: Phase[]; states: PhaseState[]; nextAction: string }) {
   const tone: Record<PhaseState, string> = {
-    done: "bg-olive text-ivory", current: "bg-terracotta text-ivory ring-2 ring-earth", next: "bg-sand border border-olive",
-    pending: "bg-sand", halted: "bg-earth text-ivory", not_reached: "bg-sand opacity-50 line-through",
+    done: "bg-olive text-on-accent", current: "bg-terracotta text-on-accent ring-2 ring-fg", next: "bg-raised border border-olive",
+    pending: "bg-raised", halted: "bg-raised text-fg", not_reached: "bg-raised opacity-50 line-through",
   };
   return (
     <section aria-label="Mission phases" className="space-y-1">
@@ -84,7 +84,7 @@ export function Timeline({ events, t, onSeek }: { events: MissionEvent[]; t: num
       {events.map((e) => (
         <li key={e.seq} data-type={e.type}>
           <button type="button" onClick={() => onSeek(e.t)}
-                  className={`w-full rounded px-2 py-1 text-left ${e.t <= t ? "bg-ivory" : "bg-sand opacity-60"} ${important.has(e.type) ? "border-l-4 border-terracotta" : "border-l-4 border-border-soft"}`}>
+                  className={`w-full rounded px-2 py-1 text-left ${e.t <= t ? "bg-surface" : "bg-raised opacity-60"} ${important.has(e.type) ? "border-l-4 border-terracotta" : "border-l-4 border-line"}`}>
             <span className="font-mono">{formatSimTime(e.t)}</span> · P{e.phase} · <b>{e.type}</b> — {e.result}
           </button>
         </li>
@@ -147,15 +147,15 @@ export function LosProfile({ los }: { los: LosResult | null }) {
   const ground = los.profile.map((p) => `${X(p.d)},${Y(p.ground)}`).join(" ");
   return (
     <figure data-testid="los-profile">
-      <svg viewBox={`0 0 ${w} ${h}`} width="100%" className="rounded border border-border-soft bg-white">
-        <polygon points={`${X(0)},${h - B} ${ground} ${X(dmax)},${h - B}`} fill="#d8cbb8" />
-        <polyline points={ground} fill="none" stroke="#3d352d" />
+      <svg viewBox={`0 0 ${w} ${h}`} width="100%" className="rounded border border-line bg-bg-deep">
+        <polygon points={`${X(0)},${h - B} ${ground} ${X(dmax)},${h - B}`} fill="#494235" />
+        <polyline points={ground} fill="none" stroke="#f3ebdd" />
         <line x1={X(los.profile[0].d)} y1={Y(los.profile[0].ray)} x2={X(dmax)} y2={Y(los.profile[los.profile.length - 1].ray)}
               stroke={los.status === "LINE_OF_SIGHT" ? "#5e9a66" : "#d0402f"} strokeWidth={2} />
         {los.obstructions.map((o, i) => <circle key={i} cx={X(o.distance_m)} cy={Y(los.profile.reduce((a, p) => (Math.abs(p.d - o.distance_m) < Math.abs(a.d - o.distance_m) ? p : a)).ground)} r={4} fill="#ff3b2f" />)}
-        <text x={L} y={h - 4} fontSize={9}>0 m</text>
-        <text x={w - 6} y={h - 4} fontSize={9} textAnchor="end">{dmax.toFixed(0)} m</text>
-        <text x={2} y={12} fontSize={9}>{ymax.toFixed(0)} m</text>
+        <text x={L} y={h - 4} fontSize={9} fill="#c9beaa">0 m</text>
+        <text x={w - 6} y={h - 4} fontSize={9} textAnchor="end" fill="#c9beaa">{dmax.toFixed(0)} m</text>
+        <text x={2} y={12} fontSize={9} fill="#c9beaa">{ymax.toFixed(0)} m</text>
       </svg>
       <figcaption className="text-xs">Terrain cross-section (with lunar curvature) and the antenna-to-antenna ray.</figcaption>
     </figure>

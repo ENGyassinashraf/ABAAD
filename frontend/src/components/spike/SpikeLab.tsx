@@ -14,7 +14,7 @@ export function SpikeLab() {
     <div className="space-y-8">
       <section aria-labelledby="results-heading">
         <h2 id="results-heading" className="mb-2 text-lg font-semibold">Results in this browser</h2>
-        <table className="w-full border-collapse bg-ivory text-left text-xs" data-testid="spike-results">
+        <table className="w-full border-collapse bg-surface text-left text-xs" data-testid="spike-results">
           <thead>
             <tr className="border-b-2 border-olive">
               <th className="p-2">Test</th><th className="p-2">Result</th><th className="p-2">Expected</th><th className="p-2">Actual</th>
@@ -22,7 +22,7 @@ export function SpikeLab() {
           </thead>
           <tbody>
             {(Object.keys(results) as TestId[]).map((id) => (
-              <tr key={id} className="border-b border-border-soft align-top" data-testid={`result-${id}`} data-status={results[id].status}>
+              <tr key={id} className="border-b border-line align-top" data-testid={`result-${id}`} data-status={results[id].status}>
                 <td className="p-2 font-semibold">{id}</td>
                 <td className={`p-2 font-semibold ${results[id].status === "fail" ? "text-terracotta" : "text-olive"}`}>
                   {LABEL[results[id].status]}

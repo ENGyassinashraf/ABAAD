@@ -27,6 +27,14 @@ data/**
 !data/*/
 !data/*/.gitkeep
 
+# Secrets / credentials (ingestion scripts read these, never commit them)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
 # OS / editors
 .DS_Store
 .idea/

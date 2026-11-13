@@ -10,23 +10,29 @@ import pytest
 
 from .conftest import raw
 
+# Phase 2 (0003) replaced ck_region_geometry_traced_has_source with the stricter
+# "no source, no geometry" rule: every non-'undefined' geometry row now also needs
+# geometry_method and uncertainty_note, so the fixture row supplies all three.
 EARTH_WKT_ROW = (
     "INSERT INTO region_geometry (region_id, body_id, geometry_role, encoding, geometry_text, crs_code,"
-    " coordinate_units, latitude_type, longitude_direction, longitude_domain, axis_order, geometry_status)"
-    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+    " coordinate_units, latitude_type, longitude_direction, longitude_domain, axis_order, geometry_status,"
+    " source_publication_id, geometry_method, uncertainty_note)"
+    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 )
 
 
 @pytest.fixture
 def conn(migrated_db: Path) -> sqlite3.Connection:
+    # migrated_db is now at head (0004): planetary_body ids 1/2/3 are seeded
+    # earth/mars/moon, so the fixture reuses them instead of re-inserting.
     c = raw(migrated_db)
-    c.execute("INSERT INTO planetary_body VALUES (1,'earth','Earth (test)','OGC:CRS84',6371008.8)")
-    c.execute("INSERT INTO planetary_body VALUES (2,'mars','Mars (test)','IAU_2015:49900',3396190.0)")
     c.execute("INSERT INTO region (id, code, body_id, region_role, region_level, validation_status, name)"
               " VALUES (1,'test_earth',1,'analog','region','regional_only','SYNTHETIC TEST REGION')")
     c.execute("INSERT INTO region (id, code, body_id, region_role, region_level, validation_status, name)"
               " VALUES (2,'test_mars',2,'reference','region','regional_only','SYNTHETIC TEST REGION')")
     c.execute("INSERT INTO parameter VALUES (1,'test_param','SYNTHETIC TEST PARAMETER','m','scalar','D')")
+    c.execute("INSERT INTO publication (id, doi, title, year, source_access, peer_reviewed)"
+              " VALUES (1,'10.0/test','SYNTHETIC TEST PUBLICATION',2026,'full_text_checked',1)")
     return c
 
 
@@ -44,7 +50,7 @@ def test_named_check_enforced(conn):
 
 def test_strict_typing_enforced(conn):
     with pytest.raises(sqlite3.IntegrityError, match="cannot store TEXT value in REAL column"):
-        conn.execute("INSERT INTO planetary_body VALUES (3,'moon','Moon','IAU_2015:30100','not-a-number')")
+        conn.execute("INSERT INTO planetary_body VALUES (101,'moon-test','Moon (test)','IAU_2015:30100','not-a-number')")
 
 
 def test_interval_is_stored_as_bounds_without_midpoint(conn):
@@ -60,25 +66,36 @@ def test_rfc7946_rejected_for_mars(conn):
     with pytest.raises(sqlite3.IntegrityError, match="only for Earth"):
         conn.execute(EARTH_WKT_ROW, (2, 2, "point_locator", "rfc7946_geojson",
                                      '{"type":"Point","coordinates":[0,0]}', "OGC:CRS84", "degree",
-                                     "geodetic_wgs84", "east", "-180..180", "lon_lat", "approximate"))
+                                     "geodetic_wgs84", "east", "-180..180", "lon_lat", "approximate",
+                                     1, "published_coordinates", "synthetic test fixture"))
 
 
 def test_rfc7946_requires_wgs84_fields(conn):
     with pytest.raises(sqlite3.IntegrityError, match="ck_region_geometry_rfc7946_only_wgs84"):
         conn.execute(EARTH_WKT_ROW, (1, 1, "point_locator", "rfc7946_geojson",
                                      '{"type":"Point","coordinates":[0,0]}', "EPSG:3857", "metre",
-                                     "not_applicable", "east", "-180..180", "x_y", "approximate"))
+                                     "not_applicable", "east", "-180..180", "x_y", "approximate",
+                                     1, "published_coordinates", "synthetic test fixture"))
 
 
 def test_planetary_wkt_accepted(conn):
     conn.execute(EARTH_WKT_ROW, (2, 2, "point_locator", "ogc_wkt", "POINT (45 30)", "IAU_2015:49900",
-                                 "degree", "planetocentric", "east", "-180..180", "lon_lat", "approximate"))
+                                 "degree", "planetocentric", "east", "-180..180", "lon_lat", "approximate",
+                                 1, "published_coordinates", "synthetic test fixture"))
+
+
+def test_geometry_rejected_without_source_method_or_note(conn):
+    with pytest.raises(sqlite3.IntegrityError, match="ck_region_geometry_has_source_method_note"):
+        conn.execute(EARTH_WKT_ROW, (2, 2, "point_locator", "ogc_wkt", "POINT (45 30)", "IAU_2015:49900",
+                                     "degree", "planetocentric", "east", "-180..180", "lon_lat", "approximate",
+                                     None, None, None))
 
 
 def test_geometry_body_must_match_region(conn):
     with pytest.raises(sqlite3.IntegrityError, match="must equal the region body"):
         conn.execute(EARTH_WKT_ROW, (2, 1, "point_locator", "ogc_wkt", "POINT (0 0)", "OGC:CRS84",
-                                     "degree", "geodetic_wgs84", "east", "-180..180", "lon_lat", "approximate"))
+                                     "degree", "geodetic_wgs84", "east", "-180..180", "lon_lat", "approximate",
+                                     1, "published_coordinates", "synthetic test fixture"))
 
 
 def test_measurement_and_gap_are_exclusive(conn):

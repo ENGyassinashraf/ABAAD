@@ -14,10 +14,17 @@ from alembic.config import Config
 
 from .conftest import ALEMBIC_INI, downgrade, raw, upgrade
 
-TABLES = {
+PHASE1_TABLES = {
     "planetary_body", "publication", "region", "region_geometry",
     "parameter", "measurement", "measurement_source", "data_gap",
 }
+PHASE2_TABLES = {
+    "region_alias", "research_task", "site_task_claim", "site_task_claim_source",
+    "dataset", "data_asset", "processing_record", "processing_input", "coverage_gap",
+    # 0006 comparison engine
+    "comparison_dimension", "task_dimension_weight", "dimension_assessment",
+}
+TABLES = PHASE1_TABLES | PHASE2_TABLES
 
 EXPECTED_CHECKS = {
     "planetary_body": {"ck_planetary_body_radius_positive"},
@@ -49,10 +56,55 @@ EXPECTED_CHECKS = {
     "data_gap": {"ck_data_gap_reason_enum"},
 }
 CHECKS_ADDED_IN_0002 = {"measurement": {"ck_measurement_resolution_adequacy_enum"}}
-HEAD_REVISION = "0003"
+HEAD_REVISION = "0007"
 MISSION_TABLES = {"mission_scenario", "mission_run", "mission_route", "mission_event", "mission_report"}
 
-EXPECTED_FKS = {  # (from_column, to_table) pairs
+# Phase 2 (0003): new checks on the four rebuilt Phase 1 tables, and the
+# complete check set of each brand-new table (checked only at head).
+CHECKS_ADDED_IN_PHASE2 = {
+    "publication": {"ck_publication_source_type_enum", "ck_publication_doi_or_url"},
+    "region": {"ck_region_country_code_shape", "ck_region_origin_status_enum"},
+    "region_geometry": {
+        "ck_region_geometry_geometry_method_enum", "ck_region_geometry_positional_uncertainty_nonneg",
+        "ck_region_geometry_has_source_method_note",
+    },
+}
+# Replaced by ck_region_geometry_has_source_method_note (the stricter "no source,
+# no geometry" rule) — must be ABSENT at head.
+CHECKS_REMOVED_IN_PHASE2 = {"region_geometry": {"ck_region_geometry_traced_has_source"}}
+
+NEW_TABLE_CHECKS = {
+    "region_alias": {"ck_region_alias_alias_kind_enum"},
+    "research_task": {"ck_research_task_applies_to_enum"},
+    "site_task_claim": {
+        "ck_site_task_claim_claim_evidence_class_enum", "ck_site_task_claim_reference_pairing_basis_enum",
+        "ck_site_task_claim_publication_state_enum", "ck_site_task_claim_pairing_shape",
+        "ck_site_task_claim_class_c_never_published",
+    },
+    "site_task_claim_source": {"ck_site_task_claim_source_role_enum"},
+    "dataset": {
+        "ck_dataset_surface_type_enum", "ck_dataset_native_resolution_unit_enum", "ck_dataset_resolution_positive",
+    },
+    "data_asset": {
+        "ck_data_asset_asset_role_enum", "ck_data_asset_validation_status_enum", "ck_data_asset_path_under_data",
+        "ck_data_asset_sha256_shape", "ck_data_asset_size_nonneg", "ck_data_asset_window_not_boundary",
+        "ck_data_asset_completeness_range", "ck_data_asset_validated_has_timestamp",
+    },
+    "processing_record": {"ck_processing_record_params_json", "ck_processing_record_resampling_method_enum"},
+    "processing_input": set(),
+    "coverage_gap": {"ck_coverage_gap_slot_enum", "ck_coverage_gap_state_enum"},
+    "comparison_dimension": set(),
+    "task_dimension_weight": {"ck_task_dimension_weight_range", "ck_task_dimension_weight_rationale"},
+    "dimension_assessment": {
+        "ck_dimension_assessment_rubric_level_enum", "ck_dimension_assessment_similarity_matches_rubric",
+        "ck_dimension_assessment_evidence_basis_enum", "ck_dimension_assessment_text",
+    },
+}
+# Hardening pass (0005): dataset.horizontal_crs is no longer forced into an
+# IAU_2015 family (F-02); a new explicit horizontal_crs_status replaces that.
+NEW_TABLE_CHECKS["dataset"] |= {"ck_dataset_horizontal_crs_status_enum", "ck_dataset_crs_status_shape"}
+
+EXPECTED_FKS = {  # (from_column, to_table) pairs present from 0001 onward
     "region": {("body_id", "planetary_body"), ("parent_region_id", "region")},
     "region_geometry": {("region_id", "region"), ("body_id", "planetary_body"),
                         ("source_publication_id", "publication")},
@@ -60,14 +112,40 @@ EXPECTED_FKS = {  # (from_column, to_table) pairs
     "measurement_source": {("measurement_id", "measurement"), ("publication_id", "publication")},
     "data_gap": {("region_id", "region"), ("parameter_id", "parameter")},
 }
+FKS_ADDED_IN_PHASE2 = {
+    "region_geometry": {("source_dataset_id", "dataset")},
+    "measurement_source": {("data_asset_id", "data_asset")},
+}
 
-EXPECTED_TRIGGERS = {
+PHASE1_TRIGGERS = {
     "trg_region_geometry_body_matches_region_ins", "trg_region_geometry_body_matches_region_upd",
     "trg_region_geometry_rfc7946_earth_only_ins", "trg_region_geometry_rfc7946_earth_only_upd",
     "trg_measurement_no_gap_ins", "trg_measurement_no_gap_upd",
     "trg_measurement_reject_synthetic_ins", "trg_measurement_reject_synthetic_upd",
     "trg_gap_no_measurement_ins", "trg_gap_no_measurement_upd",
 }
+PHASE2_TRIGGERS = {
+    "trg_region_country_earth_only_ins", "trg_region_country_earth_only_upd",
+    "trg_region_geometry_dataset_body_ins", "trg_region_geometry_dataset_body_upd",
+    "trg_claim_roles_ins", "trg_claim_roles_upd",
+    "trg_claim_publish_requires_support_ins", "trg_claim_publish_requires_support_upd",
+    "trg_dataset_crs_matches_body_ins", "trg_dataset_crs_matches_body_upd",
+    "trg_processing_input_same_body_ins",
+}
+# Hardening (0005) permanently removes the forced-CRS-family triggers (F-02).
+TRIGGERS_REMOVED_IN_HARDENING = {"trg_dataset_crs_matches_body_ins", "trg_dataset_crs_matches_body_upd"}
+HARDENING_TRIGGERS = {
+    "trg_region_immutable_when_claimed_upd", "trg_research_task_immutable_when_claimed_upd",
+    "trg_claim_reference_matrix_ins", "trg_claim_reference_matrix_upd",
+    "trg_data_asset_validated_requires_verified_crs_ins", "trg_data_asset_validated_requires_verified_crs_upd",
+    "trg_data_asset_region_body_matches_ins", "trg_data_asset_region_body_matches_upd",
+    "trg_data_asset_raw_clipped_matches_dataset_ins", "trg_data_asset_raw_clipped_matches_dataset_upd",
+    "trg_processing_record_output_matches_asset_ins", "trg_processing_record_output_matches_asset_upd",
+    "trg_processing_input_same_body_upd",
+    # 0006 comparison engine
+    "trg_assessment_roles_ins", "trg_assessment_roles_upd", "trg_region_immutable_when_assessed_upd",
+}
+EXPECTED_TRIGGERS = PHASE1_TRIGGERS  # at "0001" baseline
 EXPECTED_INDEXES = {
     "ix_region_body_id", "ix_region_parent_region_id", "ix_region_geometry_region_id",
     "ix_measurement_region_id_parameter_id", "uq_measurement_current_region_parameter",
@@ -94,22 +172,49 @@ def schema(db: Path) -> dict:
 
 
 def assert_full_schema(db: Path, at_head: bool) -> None:
+    """``at_head`` means revision 0006 (full Phase 1 + Phase 2 schema).
+    Otherwise this asserts the revision-0001 baseline (used by the
+    downgrade tests, which downgrade all the way past 0002 and 0003)."""
     s = schema(db)
-    assert TABLES <= set(s["tables"]), f"missing tables: {TABLES - set(s['tables'])}"
-    for table in TABLES:
+    expected_tables = TABLES if at_head else PHASE1_TABLES
+    assert expected_tables <= set(s["tables"]), f"missing tables: {expected_tables - set(s['tables'])}"
+    if not at_head:
+        assert not (PHASE2_TABLES & set(s["tables"])), "Phase 2 tables must not exist at the 0001 baseline"
+
+    for table in PHASE1_TABLES:
         ddl = s["tables"][table]
         assert ddl.rstrip().endswith("STRICT"), f"{table} is not STRICT:\n{ddl}"
         expected = set(EXPECTED_CHECKS[table])
         if at_head:
             expected |= CHECKS_ADDED_IN_0002.get(table, set())
+            expected |= CHECKS_ADDED_IN_PHASE2.get(table, set())
+            expected -= CHECKS_REMOVED_IN_PHASE2.get(table, set())
         for name in expected:
             assert f"CONSTRAINT {name} CHECK" in ddl, f"{table}: CHECK {name} missing"
-        if not at_head:
-            for name in CHECKS_ADDED_IN_0002.get(table, set()):
+        if at_head:
+            for name in CHECKS_REMOVED_IN_PHASE2.get(table, set()):
+                assert name not in ddl, f"{table}: CHECK {name} should have been replaced"
+        else:
+            for name in CHECKS_ADDED_IN_0002.get(table, set()) | CHECKS_ADDED_IN_PHASE2.get(table, set()):
                 assert name not in ddl
+
+    if at_head:
+        for table, checks in NEW_TABLE_CHECKS.items():
+            ddl = s["tables"][table]
+            assert ddl.rstrip().endswith("STRICT"), f"{table} is not STRICT:\n{ddl}"
+            for name in checks:
+                assert f"CONSTRAINT {name} CHECK" in ddl, f"{table}: CHECK {name} missing"
+
     for table, fks in EXPECTED_FKS.items():
         assert fks <= s["fks"][table], f"{table}: foreign keys {fks - s['fks'][table]} missing"
-    assert s["triggers"] == EXPECTED_TRIGGERS, f"trigger mismatch: {s['triggers'] ^ EXPECTED_TRIGGERS}"
+    if at_head:
+        for table, fks in FKS_ADDED_IN_PHASE2.items():
+            assert fks <= s["fks"][table], f"{table}: Phase 2 foreign keys {fks - s['fks'][table]} missing"
+
+    expected_triggers = (
+        (PHASE1_TRIGGERS | PHASE2_TRIGGERS | HARDENING_TRIGGERS) - TRIGGERS_REMOVED_IN_HARDENING
+    ) if at_head else PHASE1_TRIGGERS
+    assert s["triggers"] == expected_triggers, f"trigger mismatch: {s['triggers'] ^ expected_triggers}"
     assert EXPECTED_INDEXES <= s["indexes"], f"missing indexes: {EXPECTED_INDEXES - s['indexes']}"
     assert s["version"] == ([(HEAD_REVISION,)] if at_head else [("0001",)])
     if at_head:
@@ -149,24 +254,29 @@ def test_downgrade_to_base_removes_schema(migrated_db: Path):
 
 
 def test_triggers_still_fire_after_batch_rebuild(migrated_db: Path):
-    """Survival is not just presence: the re-created triggers must work."""
+    """Survival is not just presence: the re-created triggers must work.
+
+    Uses id 101 for the synthetic region/parameter rows: migration 0004 now
+    seeds planetary_body ids 1-3 (earth/mars/moon), so a fixed id of 1 would
+    collide. body_id=1 ('earth', seeded) is reused as a valid foreign key."""
     conn = raw(migrated_db)
-    conn.execute("INSERT INTO planetary_body VALUES (1,'earth','Earth (test)','OGC:CRS84',6371008.8)")
     conn.execute("INSERT INTO region (id, code, body_id, region_role, region_level, validation_status, name)"
-                 " VALUES (1,'test_region',1,'analog','region','regional_only','SYNTHETIC TEST REGION')")
-    conn.execute("INSERT INTO parameter VALUES (1,'test_param','SYNTHETIC TEST PARAMETER','m','scalar','D')")
-    conn.execute("INSERT INTO data_gap (region_id, parameter_id, reason) VALUES (1,1,'not_measured')")
+                 " VALUES (101,'test_region',1,'analog','region','regional_only','SYNTHETIC TEST REGION')")
+    conn.execute("INSERT INTO parameter VALUES (101,'test_param','SYNTHETIC TEST PARAMETER','m','scalar','D')")
+    conn.execute("INSERT INTO data_gap (region_id, parameter_id, reason) VALUES (101,101,'not_measured')")
     with pytest.raises(sqlite3.IntegrityError, match="data_gap already exists"):
         conn.execute("INSERT INTO measurement (region_id, parameter_id, value_kind, value_num, evidence_grade,"
-                     " source_access) VALUES (1,1,'point',1.0,'B','dataset_opened')")
+                     " source_access) VALUES (101,101,'point',1.0,'B','dataset_opened')")
 
 
 def test_failed_migration_is_atomic(tmp_path: Path):
-    """A migration that fails half-way must leave no partial change behind."""
+    """A migration that fails half-way must leave no partial change behind.
+
+    Uses revision "0007" (the first unused revision now that 0003-0006 exist) so it never collides with the real migration files copied below."""
     scripts = tmp_path / "migrations"
     shutil.copytree(ALEMBIC_INI.parent / "migrations", scripts)
     (scripts / "versions" / "0099_broken.py").write_text(
-        'revision = "0099"\ndown_revision = "0003"\nbranch_labels = None\ndepends_on = None\n'
+        'revision = "0099"\ndown_revision = "0007"\nbranch_labels = None\ndepends_on = None\n'
         "from alembic import op\n"
         "def upgrade():\n"
         '    op.execute("DROP TRIGGER trg_measurement_no_gap_ins")\n'

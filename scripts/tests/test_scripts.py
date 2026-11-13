@@ -72,12 +72,13 @@ def test_verify_data_detects_problems(tmp_path, files, listed, marker):
 # --- backup / restore ---------------------------------------------------------
 
 def test_backup_and_restore_round_trip(tmp_path, monkeypatch):
+    # Migration 0004 now seeds planetary_body (earth/mars/moon), so the fixture
+    # relies on that seed instead of inserting a synthetic row with a colliding id.
     db = _migrated(tmp_path / "live.sqlite")
-    with sqlite3.connect(db) as c:  # synthetic fixture row in a temp database
-        c.execute("INSERT INTO planetary_body VALUES (1,'earth','Earth (test)','OGC:CRS84',6371008.8)")
     backups = tmp_path / "backups"
     path = backup_mod.backup(db, backups)
-    assert path.exists() and backup_mod.describe(path) == {"integrity": "ok", "tables": 14, "revision": "0003"}
+    # 25 real tables (8 Phase 1 + 9 Phase 2 + 3 comparison + 5 Mission Lab) + alembic_version = 26, at head revision 0007.
+    assert path.exists() and backup_mod.describe(path) == {"integrity": "ok", "tables": 26, "revision": "0007"}
 
     with sqlite3.connect(db) as c:  # damage the live data after the backup
         c.execute("DELETE FROM planetary_body")
@@ -85,7 +86,8 @@ def test_backup_and_restore_round_trip(tmp_path, monkeypatch):
     backup_mod.restore(db, path, backups, yes=True, force=False)
 
     with sqlite3.connect(db) as c:
-        assert c.execute("SELECT code FROM planetary_body").fetchall() == [("earth",)]
+        codes = {row[0] for row in c.execute("SELECT code FROM planetary_body")}
+        assert codes == {"earth", "mars", "moon"}
         assert "STRICT" in c.execute("SELECT sql FROM sqlite_master WHERE name='measurement'").fetchone()[0]
     assert len(list(backups.glob("pre-restore-*.sqlite"))) == 1
 

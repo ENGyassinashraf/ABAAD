@@ -5,11 +5,11 @@ trigger has to be dropped or re-created. JSON columns are TEXT with a named
 ``json_valid`` CHECK. Every row describes a SIMULATION on synthetic terrain;
 ``data_status`` records that explicitly.
 
-Note for Phase 2: the (still unapproved) Phase 2 specification numbered its
-migrations 0003/0004; they move to 0004/0005.
+Originally written as 0003 on the Mission Lab branch; renumbered to 0007 when
+it was integrated after the Phase 2 migrations (0003-0006).
 
-Revision ID: 0003
-Revises: 0002
+Revision ID: 0007
+Revises: 0006
 Create Date: 2026-11-13
 """
 
@@ -17,8 +17,8 @@ from __future__ import annotations
 
 from alembic import op
 
-revision = "0003"
-down_revision = "0002"
+revision = "0007"
+down_revision = "0006"
 branch_labels = None
 depends_on = None
 

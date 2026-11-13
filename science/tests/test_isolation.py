@@ -41,6 +41,8 @@ def test_importing_engine_loads_no_web_or_db_modules():
     assert out.stdout.strip() == ""
 
 
-def test_placeholder_has_no_scoring_api():
-    public = {n for n in dir(abaad_science) if not n.startswith("_")}
-    assert public == {"METHODOLOGY_BASELINE"}, public
+def test_public_api_is_exactly_the_scoring_engine():
+    assert set(abaad_science.__all__) == {
+        "DEFAULT_MIN_COVERAGE", "METHODOLOGY_BASELINE", "RUBRIC", "DimensionResult", "ScoreResult",
+        "rank_candidates", "score_candidate", "similarity_from_rubric",
+    }

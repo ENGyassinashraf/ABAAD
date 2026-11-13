@@ -26,7 +26,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 const Card = ({ title, children, testId }: { title: string; children: React.ReactNode; testId?: string }) => (
-  <section className="space-y-2 rounded-lg border border-border-soft bg-ivory p-3" data-testid={testId}>
+  <section className="space-y-2 rounded-lg border border-line bg-surface p-3" data-testid={testId}>
     <h2 className="text-sm font-bold uppercase tracking-wider text-olive">{title}</h2>
     {children}
   </section>
@@ -248,13 +248,13 @@ export function MissionLab() {
           <h1 className="font-serif text-3xl font-bold">{t.missionLab.title}</h1>
           <p>{t.missionLab.subtitle}</p>
         </div>
-        <p className="max-w-xl rounded border-2 border-terracotta bg-ivory p-2 text-xs" data-testid="synthetic-banner">
+        <p className="max-w-xl rounded border-2 border-terracotta bg-surface p-2 text-xs" data-testid="synthetic-banner">
           <b>{t.missionLab.synthetic}.</b> {t.missionLab.syntheticNote}
         </p>
       </header>
-      {error && <p role="alert" className="rounded border border-terracotta bg-ivory p-2 text-sm text-terracotta" data-testid="error">{error}</p>}
+      {error && <p role="alert" className="rounded border border-terracotta bg-surface p-2 text-sm text-terracotta" data-testid="error">{error}</p>}
 
-      <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)_300px]">
+      <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
         {/* ---------------- setup */}
         <aside className="space-y-3" aria-label="Mission setup">
           <Card title={t.missionLab.step1} testId="step-body">
@@ -266,7 +266,7 @@ export function MissionLab() {
             ))}
           </Card>
           <Card title={t.missionLab.step2} testId="step-region">
-            <select className="w-full rounded border border-olive bg-white p-1 text-sm" value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Lunar region">
+            <select className="w-full rounded border border-olive bg-bg-deep p-1 text-sm" value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Lunar region">
               {catalog.regions.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
             </select>
             <ul className="list-disc space-y-1 pl-4 text-xs">
@@ -306,7 +306,7 @@ export function MissionLab() {
               <button type="button" className="rounded border border-olive px-2 py-1" onClick={() => setPick("target")} data-testid="pick-target">Target: {xyText(cfg.target_xy)}</button>
             </div>
             <label className="block text-xs">Rover speed profile
-              <select className="mt-0.5 w-full rounded border border-olive bg-white p-1" value={cfg.speed_profile} onChange={(e) => set("speed_profile", e.target.value)} data-testid="speed">
+              <select className="mt-0.5 w-full rounded border border-olive bg-bg-deep p-1" value={cfg.speed_profile} onChange={(e) => set("speed_profile", e.target.value)} data-testid="speed">
                 {Object.entries((catalog as Catalog & { speed_profiles_mps: Record<string, number> }).speed_profiles_mps).map(([k, v]) => <option key={k} value={k}>{k} ({v} m/s, assumed)</option>)}
               </select>
             </label>
@@ -322,7 +322,7 @@ export function MissionLab() {
               )}
             </fieldset>
             <fieldset className="text-xs"><legend className="font-semibold">Positioning (injected event)</legend>
-              <select className="w-full rounded border border-olive bg-white p-1" value={cfg.nav_mode} onChange={(e) => set("nav_mode", e.target.value)} data-testid="nav-mode">
+              <select className="w-full rounded border border-olive bg-bg-deep p-1" value={cfg.nav_mode} onChange={(e) => set("nav_mode", e.target.value)} data-testid="nav-mode">
                 <option value="NOMINAL">NOMINAL — external fixes throughout</option>
                 <option value="DEGRADED">DEGRADED — sparse, less precise fixes</option>
                 <option value="GNSS_UNAVAILABLE">GNSS_UNAVAILABLE — external positioning lost</option>
@@ -334,7 +334,7 @@ export function MissionLab() {
             <fieldset className="space-y-1 text-xs"><legend className="font-semibold">Failure injection</legend>
               <label className="block"><input type="checkbox" checked={cfg.terrain_blockage} onChange={(e) => set("terrain_blockage", e.target.checked)} data-testid="blockage" /> Inject terrain blockage (synthetic mound)</label>
               <div className="flex flex-wrap items-center gap-1">
-                <select className="rounded border border-olive bg-white" value={outage.segment} onChange={(e) => setOutage({ ...outage, segment: e.target.value })} aria-label="Outage segment">
+                <select className="rounded border border-olive bg-bg-deep" value={outage.segment} onChange={(e) => setOutage({ ...outage, segment: e.target.value })} aria-label="Outage segment">
                   <option value="rover_base">rover–base link</option><option value="base_earth">base–Earth link</option>
                 </select>
                 <input aria-label="Outage start (s)" type="number" className="w-16 rounded border border-olive px-1" value={outage.start_s} onChange={(e) => setOutage({ ...outage, start_s: Number(e.target.value) })} />
@@ -368,7 +368,7 @@ export function MissionLab() {
               </div>
             </details>
             <button type="button" disabled={busy} onClick={generate} data-testid="generate"
-                    className="w-full rounded bg-olive px-3 py-2 font-semibold text-ivory disabled:opacity-60">
+                    className="w-full rounded bg-olive px-3 py-2 font-semibold text-on-accent disabled:opacity-60">
               {busy ? t.missionLab.working : run ? t.missionLab.rerun : t.missionLab.generate}
             </button>
           </Card>
@@ -378,7 +378,7 @@ export function MissionLab() {
         <main className="min-w-0 space-y-3" aria-label="Mission workspace">
           {!run && <p className="rounded border border-dashed border-olive p-6 text-center">Configure the mission and press <b>{t.missionLab.generate}</b>.</p>}
           {run && run.status === "NO_ROUTE" && (
-            <p role="alert" data-testid="no-route-state" className="rounded border-2 border-terracotta bg-ivory p-3">
+            <p role="alert" data-testid="no-route-state" className="rounded border-2 border-terracotta bg-surface p-3">
               <b>No route.</b> {(run.summary.reasons ?? []).join("; ")} — change the start, target or constraints and generate again.
             </p>
           )}
@@ -394,11 +394,11 @@ export function MissionLab() {
                 <Viewer3D ref={viewer} terrain={terrain} textureUrl={imageUrl(mapLayer, run.config)} run={run} pose={pose} frame={frame} layers={layers} follow={follow} />
               </div>
               <div className="flex flex-wrap items-center gap-2 text-sm" data-testid="playback">
-                <button type="button" className="rounded bg-earth px-3 py-1 text-ivory" onClick={() => { if (simT >= tEnd) setSimT(0); setPlaying(!playing); }} data-testid="play">
+                <button type="button" className="rounded bg-raised px-3 py-1 text-fg" onClick={() => { if (simT >= tEnd) setSimT(0); setPlaying(!playing); }} data-testid="play">
                   {playing ? "Pause" : simT > 0 && simT < tEnd ? "Resume" : "Play"}
                 </button>
-                <button type="button" className="rounded border border-earth px-3 py-1" onClick={() => { setSimT(0); setPlaying(false); }} data-testid="restart">Restart</button>
-                <label>Speed <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="rounded border border-olive bg-white" data-testid="speed-select">
+                <button type="button" className="rounded border border-line-strong px-3 py-1" onClick={() => { setSimT(0); setPlaying(false); }} data-testid="restart">Restart</button>
+                <label>Speed <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="rounded border border-olive bg-bg-deep" data-testid="speed-select">
                   {[60, 300, 600, 1800, 3600].map((v) => <option key={v} value={v}>{v}×</option>)}
                 </select></label>
                 <input type="range" min={0} max={tEnd} step={1} value={simT} onChange={(e) => setSimT(Number(e.target.value))} className="min-w-40 flex-1" aria-label="Simulation time" data-testid="scrubber" />
@@ -408,20 +408,22 @@ export function MissionLab() {
                 {(Object.keys(layers) as (keyof Layers)[]).map((k) => (
                   <label key={k}><input type="checkbox" checked={layers[k]} onChange={(e) => setLayers({ ...layers, [k]: e.target.checked })} data-testid={`layer-${k}`} /> {k}</label>
                 ))}
-                <label>Terrain colour <select value={mapLayer} onChange={(e) => setMapLayer(e.target.value as typeof mapLayer)} className="rounded border border-olive bg-white" data-testid="map-layer">
+                <label>Terrain colour <select value={mapLayer} onChange={(e) => setMapLayer(e.target.value as typeof mapLayer)} className="rounded border border-olive bg-bg-deep" data-testid="map-layer">
                   <option value="hillshade">hillshade</option><option value="slope">slope</option><option value="visibility">comm visibility heatmap</option>
                 </select></label>
                 <label><input type="checkbox" checked={follow} onChange={(e) => setFollow(e.target.checked)} data-testid="follow" /> follow rover</label>
               </div>
               <PhaseTracker phases={run.phases} states={states} nextAction={nextAction} />
+              <div className="grid gap-3 2xl:grid-cols-[minmax(0,1fr)_280px]">
+                <div className="min-w-0 space-y-3">
 
               <div role="tablist" className="flex flex-wrap gap-1 border-b border-olive">
                 {(Object.keys(t.missionLab.tabs) as Tab[]).map((k) => (
                   <button key={k} role="tab" aria-selected={tab === k} type="button" onClick={() => setTab(k)} data-testid={`tab-${k}`}
-                          className={`rounded-t px-3 py-1 text-sm ${tab === k ? "bg-olive text-ivory" : "bg-ivory"}`}>{t.missionLab.tabs[k]}</button>
+                          className={`rounded-t px-3 py-1 text-sm ${tab === k ? "bg-olive text-on-accent" : "bg-surface"}`}>{t.missionLab.tabs[k]}</button>
                 ))}
               </div>
-              <div className="rounded-b border border-t-0 border-border-soft bg-ivory p-3">
+              <div className="rounded-b border border-t-0 border-line bg-surface p-3">
                 {tab === "timeline" && <Timeline events={run.events} t={simT} onSeek={(v) => { setSimT(v); setPlaying(false); }} />}
                 {tab === "route" && <RouteAnalysis rec={run.routes.recommended} alt={run.routes.alternate} note={run.routes.recommended?.meta?.alternate_note} />}
                 {tab === "sandbox" && (
@@ -449,7 +451,7 @@ export function MissionLab() {
                 {tab === "compare" && (
                   <div className="space-y-2 text-sm" data-testid="compare">
                     <p className="text-xs">Same mission, start, target and seeds. Baseline: nominal positioning, direct link, no outage. Stress: injected terrain blockage, GNSS unavailable from {cfg.nav_event_time_s} s, autonomy disabled. Mitigated: same stresses plus derived relay, derived beacons and autonomy enabled.</p>
-                    <button type="button" disabled={busy || !scenario} onClick={runComparison} className="rounded bg-olive px-3 py-1 font-semibold text-ivory disabled:opacity-60" data-testid="run-compare">
+                    <button type="button" disabled={busy || !scenario} onClick={runComparison} className="rounded bg-olive px-3 py-1 font-semibold text-on-accent disabled:opacity-60" data-testid="run-compare">
                       {busy ? t.missionLab.working : "Run baseline / stress / mitigated"}
                     </button>
                     {compare && (
@@ -459,7 +461,7 @@ export function MissionLab() {
                           {([["status", "Completion"], ["planned_route_m", "Route (m)"], ["mission_duration_s", "Duration"], ["earth_path_unavailable_s", "Earth path unavailable"],
                             ["max_data_queued_mb", "Max data queued (MB)"], ["max_position_uncertainty_m", "Max uncertainty (m)"], ["safety_pauses", "Safety pauses"],
                             ["fallback_actions", "Fallback actions"], ["science_result", "Sampling"]] as const).map(([k, label]) => (
-                            <tr key={k} className="border-b border-border-soft">
+                            <tr key={k} className="border-b border-line">
                               <td>{label}</td>
                               {compare.runs.map((r) => {
                                 const v = r.summary[k];
@@ -476,7 +478,7 @@ export function MissionLab() {
                 {tab === "report" && (
                   <div className="space-y-2 text-sm" data-testid="report-panel">
                     <p>The report is generated on the server from the exact saved Mission Run #{run.id} (configuration, routes, events, frames and summary) and embeds a snapshot hash. The current 3D view is attached as a snapshot. Runs from the latest comparison of this scenario are included in the results section.</p>
-                    <button type="button" disabled={busy} onClick={exportReport} className="rounded bg-terracotta px-3 py-1 font-semibold text-ivory disabled:opacity-60" data-testid="export-report">
+                    <button type="button" disabled={busy} onClick={exportReport} className="rounded bg-terracotta px-3 py-1 font-semibold text-on-accent disabled:opacity-60" data-testid="export-report">
                       {busy ? t.missionLab.working : report ? "Regenerate report" : `Export report for run #${run.id}`}
                     </button>
                     {report && (
@@ -489,22 +491,23 @@ export function MissionLab() {
                   </div>
                 )}
               </div>
-            </>
-          )}
-        </main>
-
-        {/* ---------------- telemetry */}
-        <aside className="space-y-3" aria-label="Telemetry and events">
+                </div>
+                <aside className="space-y-3" aria-label="Telemetry and events">
           {run && run.status !== "NO_ROUTE" && <Telemetry frame={frame} run={run} t={simT} />}
           {run && run.status !== "NO_ROUTE" && (
-            <section className="rounded-lg border border-border-soft bg-ivory p-3 text-xs" aria-label="Latest events">
+            <section className="rounded-lg border border-line bg-surface p-3 text-xs" aria-label="Latest events">
               <h3 className="mb-1 font-bold uppercase tracking-wider text-olive">Latest events</h3>
               <ol className="space-y-0.5" data-testid="latest-events">
                 {seen.slice(-6).reverse().map((e) => <li key={e.seq}><span className="font-mono">{formatSimTime(e.t)}</span> <b>{e.type}</b></li>)}
               </ol>
             </section>
           )}
-        </aside>
+                </aside>
+              </div>
+            </>
+          )}
+        </main>
+
       </div>
     </div>
   );

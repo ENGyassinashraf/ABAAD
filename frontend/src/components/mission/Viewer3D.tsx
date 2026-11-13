@@ -235,12 +235,12 @@ export const Viewer3D = forwardRef<Viewer3DHandle, Props>(function Viewer3D(
     <div className="relative h-full w-full">
       <div ref={host} className="h-full w-full" data-testid="viewer3d" data-state={state} />
       {state === "unavailable" && (
-        <p className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-ivory">
+        <p className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-fg">
           WebGL is not available in this browser, so the 3D view cannot be shown. The 2D map, telemetry and timeline still
           show the same simulation.
         </p>
       )}
-      <p className="pointer-events-none absolute bottom-2 left-2 rounded bg-black/60 px-2 py-1 text-[11px] text-ivory">
+      <p className="pointer-events-none absolute bottom-2 left-2 rounded bg-black/60 px-2 py-1 text-[11px] text-fg">
         Synthetic / Demonstration terrain · vertical exaggeration {EXAG}× · rover marked by a yellow pole (not to scale) · drag to orbit, scroll to zoom, right-drag to pan
       </p>
     </div>
