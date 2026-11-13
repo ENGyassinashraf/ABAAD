@@ -77,7 +77,7 @@ def test_backup_and_restore_round_trip(tmp_path, monkeypatch):
         c.execute("INSERT INTO planetary_body VALUES (1,'earth','Earth (test)','OGC:CRS84',6371008.8)")
     backups = tmp_path / "backups"
     path = backup_mod.backup(db, backups)
-    assert path.exists() and backup_mod.describe(path) == {"integrity": "ok", "tables": 9, "revision": "0002"}
+    assert path.exists() and backup_mod.describe(path) == {"integrity": "ok", "tables": 14, "revision": "0003"}
 
     with sqlite3.connect(db) as c:  # damage the live data after the backup
         c.execute("DELETE FROM planetary_body")

@@ -49,6 +49,8 @@ EXPECTED_CHECKS = {
     "data_gap": {"ck_data_gap_reason_enum"},
 }
 CHECKS_ADDED_IN_0002 = {"measurement": {"ck_measurement_resolution_adequacy_enum"}}
+HEAD_REVISION = "0003"
+MISSION_TABLES = {"mission_scenario", "mission_run", "mission_route", "mission_event", "mission_report"}
 
 EXPECTED_FKS = {  # (from_column, to_table) pairs
     "region": {("body_id", "planetary_body"), ("parent_region_id", "region")},
@@ -109,7 +111,13 @@ def assert_full_schema(db: Path, at_head: bool) -> None:
         assert fks <= s["fks"][table], f"{table}: foreign keys {fks - s['fks'][table]} missing"
     assert s["triggers"] == EXPECTED_TRIGGERS, f"trigger mismatch: {s['triggers'] ^ EXPECTED_TRIGGERS}"
     assert EXPECTED_INDEXES <= s["indexes"], f"missing indexes: {EXPECTED_INDEXES - s['indexes']}"
-    assert s["version"] == [("0002",)] if at_head else [("0001",)]
+    assert s["version"] == ([(HEAD_REVISION,)] if at_head else [("0001",)])
+    if at_head:
+        assert MISSION_TABLES <= set(s["tables"]), f"missing mission tables: {MISSION_TABLES - set(s['tables'])}"
+        for table in MISSION_TABLES:
+            assert s["tables"][table].rstrip().endswith("STRICT"), f"{table} is not STRICT"
+    else:
+        assert not (MISSION_TABLES & set(s["tables"]))
 
 
 def test_upgrade_from_clean_state(migrated_db: Path):
@@ -157,8 +165,8 @@ def test_failed_migration_is_atomic(tmp_path: Path):
     """A migration that fails half-way must leave no partial change behind."""
     scripts = tmp_path / "migrations"
     shutil.copytree(ALEMBIC_INI.parent / "migrations", scripts)
-    (scripts / "versions" / "0003_broken.py").write_text(
-        'revision = "0003"\ndown_revision = "0002"\nbranch_labels = None\ndepends_on = None\n'
+    (scripts / "versions" / "0099_broken.py").write_text(
+        'revision = "0099"\ndown_revision = "0003"\nbranch_labels = None\ndepends_on = None\n'
         "from alembic import op\n"
         "def upgrade():\n"
         '    op.execute("DROP TRIGGER trg_measurement_no_gap_ins")\n'
@@ -171,7 +179,7 @@ def test_failed_migration_is_atomic(tmp_path: Path):
     cfg.set_main_option("script_location", str(scripts))
     import argparse
     cfg.cmd_opts = argparse.Namespace(x=[f"db={db}"])
-    command.upgrade(cfg, "0002")
+    command.upgrade(cfg, HEAD_REVISION)
     with pytest.raises(RuntimeError, match="deliberate failure"):
-        command.upgrade(cfg, "0003")
+        command.upgrade(cfg, "0099")
     assert_full_schema(db, at_head=True)
