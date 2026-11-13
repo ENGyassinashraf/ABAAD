@@ -41,6 +41,7 @@ export function ExploreClient() {
 
   const [options, setOptions] = useState<OptionsResponse | null>(null);
   const [optionsError, setOptionsError] = useState<string | null>(null);
+  const [showAllUnranked, setShowAllUnranked] = useState(false);
   const [body, setBody] = useState<string>("mars");
   const [result, setResult] = useState<CompareResponse | null>(null);
   const [resultError, setResultError] = useState<string | null>(null);
@@ -204,9 +205,15 @@ export function ExploreClient() {
               <div className="space-y-3">
                 <h3 className="font-serif text-xl font-semibold">{t.explore.insufficient} ({unranked.length})</h3>
                 <p className="text-sm text-fg-2">{t.explore.insufficientHelp}</p>
-                {unranked.map((c) => (
+                {(showAllUnranked ? unranked : unranked.slice(0, 3)).map((c) => (
                   <CandidateCard key={c.region.code} c={c} minCoverage={minCoverage} highlighted={highlighted === c.region.code} onFocus={() => setHighlighted(c.region.code)} />
                 ))}
+                {unranked.length > 3 && (
+                  <button type="button" data-testid="toggle-unranked" onClick={() => setShowAllUnranked((v) => !v)}
+                    className="w-full rounded-xl border border-dashed border-line-strong bg-surface/60 px-4 py-3 text-sm font-semibold text-fg-2 transition-colors hover:border-ochre hover:text-fg">
+                    {showAllUnranked ? "Show fewer" : `Show ${unranked.length - 3} more candidates without enough evidence`}
+                  </button>
+                )}
               </div>
             </div>
 
